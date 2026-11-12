@@ -1,0 +1,25 @@
+# Maxfiy fayllar
+.env
+.env.*
+backend/.env
+backend/.env.*
+
+# Node
+node_modules/
+
+# Vercel
+.vercel/
+
+# Android build manbalari (sayt uchun kerak emas)
+android-apk/
+
+# Lokal skriptlar
+Englify-AI.bat
+Englify-server.bat
+englify-server.ps1
+
+# Hujjatlar / ortiqcha fayllar
+.git/
+.gitignore
+README.md
+dfff.html

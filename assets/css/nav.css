@@ -1,0 +1,37 @@
+/* Englify — nav */
+  /* --- NAV BAR: iOS uslubidagi shaffof tab bar --- */
+  .app-dashboard .bottom-nav-bar{background:var(--header-bg);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border-top:1px solid var(--line);box-shadow:0 -1px 0 var(--shadow);height:64px;padding:0 8px;}
+  [data-theme="dark"] .app-dashboard .bottom-nav-bar{background:rgba(21,26,35,.86);border-top:1px solid rgba(255,255,255,.09);box-shadow:none;}
+  .b-nav-tab{color:#8e8e93;background:none;border:none;border-radius:0;gap:3px;padding:4px 8px;max-width:104px;}
+  [data-theme="dark"] .b-nav-tab{color:#8e8e93;background:none;}
+  .b-nav-tab:hover{color:var(--blue-deep);background:none;}
+  [data-theme="dark"] .b-nav-tab:hover{color:#e2e8f3;background:none;}
+  .b-nav-tab.active{color:var(--blue-deep);background:none;border:none;}
+  [data-theme="dark"] .b-nav-tab.active{color:#4d8ef7;background:none;border:none;}
+  .b-nav-tab.active .b-icon{transform:none;}
+  .b-nav-tab .b-icon{font-size:22px;line-height:1;display:flex;align-items:center;justify-content:center;transition:transform .18s ease;}
+  .b-nav-tab .b-icon svg{width:25px;height:25px;display:block;}
+  .b-nav-tab.active .b-icon svg{filter:drop-shadow(0 2px 6px rgba(47,111,214,.35));}
+  @media(max-width:600px){
+    .app-dashboard .bottom-nav-bar{padding:0 3px;height:62px;}
+    .b-nav-tab{padding:4px 2px;font-size:10.5px;gap:3px;max-width:none;}
+    .b-nav-tab .b-icon{font-size:20px;}
+    .b-nav-tab .b-icon svg{width:23px;height:23px;}
+    .b-nav-tab .b-label{font-size:10px;line-height:1.1;white-space:nowrap;}
+  }
+  .b-av{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#6a5cf5,#a855f7);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;font-family:'Manrope',sans-serif;}
+  [data-theme="dark"] .b-av{background:#2a3140;color:#dfe6f2;}
+  .app-dashboard .sidebar{background:#151a23;border-right:1px solid #232a38;}
+  [data-theme="dark"] .app-dashboard .sidebar{background:#151a23;border-right:1px solid #232a38;}
+  .app-dashboard .sidebar .brand-name{color:#f2f5fa;}
+  .app-dashboard .sidebar .dash-nav-link{color:#9aa4b5;font-weight:700;}
+  .app-dashboard .sidebar .dash-nav-link:hover{color:#fff;background:rgba(255,255,255,.06);}
+  .app-dashboard .sidebar .dash-nav-link.active{color:#4d8ef7;background:rgba(77,142,247,.13);box-shadow:inset 0 0 0 1px rgba(77,142,247,.4);}
+  .app-dashboard .sidebar .user{border-top:1px solid #232a38;}
+  .app-dashboard .sidebar .user:hover{background:rgba(255,255,255,.06);}
+  .app-dashboard .sidebar .user .name,
+  .app-dashboard .sidebar .user strong,
+  .app-dashboard .sidebar .user b{color:#e2e8f3;}
+  .app-dashboard .sidebar .user small,
+  .app-dashboard .sidebar .user span{color:#8f9aab;}
+

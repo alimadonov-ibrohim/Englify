@@ -1,0 +1,66 @@
+/* Englify — create-test */
+  /* --- TEST YARATISH (CREATE) — YANGI DIZAYN --- */
+  .crt-wrap{max-width:1000px;}
+  .crt-header{display:flex;align-items:center;gap:16px;margin-bottom:22px;}
+  .crt-back{width:44px;height:44px;border-radius:50%;background:var(--card);border:1px solid var(--line);color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;}
+  .crt-back:hover{border-color:var(--blue);background:var(--blue-tint);color:var(--blue-deep);}
+  .crt-title{font-family:'Fraunces',serif;font-size:26px;font-weight:600;line-height:1.15;letter-spacing:-0.01em;}
+  .crt-subtitle{font-size:13px;color:var(--ink-soft);margin-top:3px;max-width:560px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+  .crt-tabs{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;}
+  .crt-tab{display:flex;align-items:center;justify-content:center;gap:9px;padding:16px 18px;border-radius:16px;border:1px solid var(--line);background:var(--card);color:var(--ink-soft);font-size:14.5px;font-weight:700;cursor:pointer;font-family:'Manrope',sans-serif;transition:all .18s;}
+  .crt-tab:hover{border-color:var(--blue);color:var(--blue-deep);}
+  .crt-tab.active{background:linear-gradient(90deg,#2563eb,#4f46e5);border-color:transparent;color:#fff;box-shadow:0 10px 24px -10px rgba(37,99,235,0.6);}
+  .crt-tab .crt-badge{background:rgba(96,165,250,0.16);color:#60a5fa;font-size:11px;font-weight:800;padding:3px 9px;border-radius:100px;letter-spacing:.02em;}
+  .crt-tab.active .crt-badge{background:rgba(255,255,255,0.22);color:#fff;}
+
+  .crt-card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:26px 28px;margin-bottom:8px;}
+  .crt-card h3{font-size:19px;font-weight:800;margin-bottom:5px;letter-spacing:-0.01em;}
+  .crt-card .crt-hint{font-size:13.5px;color:var(--ink-soft);margin-bottom:20px;}
+  .crt-label{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:800;letter-spacing:.06em;color:var(--ink-soft);margin:0 0 8px;}
+  .crt-label .req{color:#ef4444;}
+  .crt-label-note{font-weight:600;letter-spacing:0;color:var(--ink-soft);opacity:.8;}
+  .crt-input,.crt-textarea{width:100%;background:var(--field);border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-size:14.5px;color:var(--ink);font-family:'Manrope',sans-serif;outline:none;transition:border-color .15s,box-shadow .15s;margin-bottom:18px;}
+  .crt-input::placeholder,.crt-textarea::placeholder{color:var(--ink-soft);opacity:.55;font-weight:600;letter-spacing:.04em;}
+  .crt-input:focus,.crt-textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,0.14);}
+  .crt-textarea{min-height:96px;resize:vertical;line-height:1.6;}
+  .crt-time-label{font-size:13px;color:var(--ink-soft);margin-bottom:10px;}
+  .crt-pills{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px;}
+  .crt-pill{background:var(--field);border:1px solid var(--line);color:var(--ink-soft);border-radius:100px;padding:9px 18px;font-size:13.5px;font-weight:700;cursor:pointer;font-family:'Manrope',sans-serif;transition:all .15s;}
+  .crt-pill:hover{border-color:var(--blue);color:var(--blue-deep);}
+  .crt-pill.active{background:#2563eb;border-color:#2563eb;color:#fff;box-shadow:0 5px 14px -5px rgba(37,99,235,0.6);}
+  .crt-add-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:9px;background:#2563eb;color:#fff;border:none;border-radius:14px;padding:15px 18px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Manrope',sans-serif;transition:all .15s;}
+  .crt-add-btn:hover{background:#1d4ed8;}
+  .crt-add-btn:active{transform:scale(0.99);}
+  .crt-create-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:9px;background:linear-gradient(135deg,#1fa85c,#0f8f7c);color:#fff;border:none;border-radius:14px;padding:15px 18px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Manrope',sans-serif;margin-top:12px;transition:all .15s;}
+  .crt-create-btn:hover{filter:brightness(1.08);}
+
+  /* Saqlangan savollar */
+  .crt-q-item{display:flex;align-items:flex-start;gap:12px;background:var(--field);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:10px;}
+  .crt-q-num{width:26px;height:26px;border-radius:8px;background:#2563eb;color:#fff;font-size:12.5px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+  .crt-q-body{flex:1;min-width:0;}
+  .crt-q-body strong{display:block;font-size:14px;line-height:1.45;word-break:break-word;}
+  .crt-q-body span{display:block;font-size:12.5px;color:#16a34a;font-weight:700;margin-top:4px;}
+  .crt-q-del{background:transparent;border:none;color:var(--ink-soft);font-size:14px;cursor:pointer;padding:4px 8px;border-radius:8px;flex-shrink:0;transition:all .15s;}
+  .crt-q-del:hover{color:#e11d48;background:rgba(225,29,72,0.1);}
+
+  /* Savol qo'shish muharriri */
+  .crt-q-editor{background:var(--card);border:1px dashed var(--blue);border-radius:14px;padding:18px;margin-bottom:18px;animation:fadeIn 0.2s ease-in-out;}
+  .crt-q-editor-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  .crt-q-editor-head span{font-size:14.5px;font-weight:800;}
+  .crt-q-editor-head button{background:transparent;border:none;color:var(--ink-soft);font-size:16px;cursor:pointer;padding:4px 8px;border-radius:8px;transition:all .15s;}
+  .crt-q-editor-head button:hover{color:#e11d48;background:rgba(225,29,72,0.1);}
+  .crt-q-editor .crt-textarea{min-height:70px;margin-bottom:14px;}
+  .crt-opt-list{display:flex;flex-direction:column;gap:10px;margin-bottom:16px;}
+  .crt-opt-row{display:flex;align-items:center;gap:10px;}
+  .crt-opt-row input[type="radio"]{width:18px;height:18px;accent-color:#2563eb;flex-shrink:0;cursor:pointer;}
+  .crt-opt-letter{width:26px;height:26px;border-radius:8px;background:var(--field);border:1px solid var(--line);font-size:12px;font-weight:800;color:var(--ink-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .crt-opt-input{flex:1;background:var(--field);border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-size:14px;color:var(--ink);font-family:'Manrope',sans-serif;outline:none;transition:border-color .15s;}
+  .crt-opt-input:focus{border-color:var(--blue);}
+  .crt-editor-actions{display:flex;gap:10px;}
+  .crt-save-q{flex:1;background:#2563eb;color:#fff;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Manrope',sans-serif;transition:all .15s;}
+  .crt-save-q:hover{background:#1d4ed8;}
+  .crt-cancel-q{flex:1;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Manrope',sans-serif;transition:all .15s;}
+  .crt-cancel-q:hover{border-color:var(--blue);background:var(--blue-tint);}
+  .crt-section-label{font-size:14px;font-weight:800;letter-spacing:.05em;color:var(--ink);margin:26px 0 14px;}
+

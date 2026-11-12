@@ -1,0 +1,129 @@
+/* Englify — home */
+  /* Google bilan kirish */
+  .login-divider{display:flex;align-items:center;gap:12px;margin:20px 0;}
+  .login-divider::before,.login-divider::after{content:"";flex:1;height:1px;background:var(--line);}
+  .login-divider span{font-size:12.5px;color:var(--ink-soft);font-weight:600;}
+  .btn-google{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:14px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-family:'Manrope',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .15s ease;}
+  .btn-google:hover{border-color:#4285f4;background:rgba(66,133,244,0.05);}
+  .btn-google:active{transform:scale(0.98);}
+  .btn-google svg{width:20px;height:20px;flex-shrink:0;}
+
+  .dashboard-view-container{display:none; background:var(--paper); min-height:100vh; width:100%; margin:0; padding:0;}
+  body.dash-mode{overflow:hidden; background:var(--paper);}
+
+  footer{border-top:1px solid var(--line);padding:60px 0 34px;}
+  .footer-top{display:flex;justify-content:space-between;gap:40px;flex-wrap:wrap;margin-bottom:48px;}
+  .footer-cols{display:flex;gap:64px;flex-wrap:wrap;}
+  .footer-col h5{font-size:13px;color:var(--ink-soft);margin-bottom:16px;}
+  .footer-col a{display:block;font-size:14.5px;margin-bottom:10px;color:var(--ink);}
+  .footer-col a:hover{color:var(--blue-deep);}
+  .footer-bottom{display:flex;justify-content:space-between;align-items:center;padding-top:26px;border-top:1px solid var(--line);font-size:13px;color:var(--ink-soft);}
+ 
+  /* --- ALILM-STYLE HOME: User card, XP, test search, recent tests --- */
+  .al-user-card{
+    display:flex;align-items:center;gap:10px;
+    background:var(--card);border:1px solid var(--line);
+    border-radius:12px;padding:10px 12px;margin-bottom:4px;
+    cursor:pointer;transition:all .15s;
+  }
+  .al-user-card:hover{transform:translateY(-1px);box-shadow:0 4px 12px -6px rgba(14,32,56,0.15);}
+  .al-user-avatar{
+    width:34px;height:34px;border-radius:50%;
+    background:linear-gradient(135deg,#6a5cf5,#a855f7);
+    color:#fff;display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:15px;flex-shrink:0;
+  }
+  .al-user-info{flex:1;min-width:0;}
+  .al-user-name{font-size:13.5px;font-weight:800;color:var(--ink);margin-bottom:1px;}
+  .al-user-level{font-size:11px;color:var(--ink-soft);font-weight:600;}
+  .al-user-xp{flex-shrink:0;}
+  .al-xp-badge{
+    display:inline-flex;align-items:center;gap:4px;
+    background:linear-gradient(135deg,#6366f1,#8b5cf6);
+    color:#fff;font-size:11.5px;font-weight:800;
+    padding:5px 10px;border-radius:100px;
+    box-shadow:0 3px 8px -3px rgba(99,102,241,0.45);
+  }
+  .al-xp-icon{font-size:11px;}
+  .al-user-arrow{color:var(--ink-soft);font-size:20px;font-weight:300;line-height:1;flex-shrink:0;}
+  .al-xp-progress-wrap{margin-bottom:14px;padding:0 2px;}
+  .al-xp-progress{
+    height:5px;background:var(--field);
+    border-radius:100px;overflow:hidden;border:1px solid var(--line);
+    margin-bottom:4px;
+  }
+  .al-xp-fill{
+    height:100%;border-radius:100px;
+    background:linear-gradient(90deg,#6366f1,#8b5cf6);
+    transition:width .6s ease;
+  }
+  .al-xp-hint{font-size:10.5px;color:var(--ink-soft);font-weight:600;}
+
+  /* Test code qidiruv — ixcham */
+  .al-test-search{
+    display:flex;align-items:center;gap:8px;
+    background:var(--card);border:1px solid var(--line);
+    border-radius:11px;padding:6px 8px;margin-bottom:16px;
+  }
+  .al-search-icon{
+    width:28px;height:28px;border-radius:7px;
+    background:var(--field);color:var(--ink-soft);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .al-search-icon svg{width:14px;height:14px;}
+  .al-test-search input{
+    flex:1;border:none;background:transparent;
+    font-family:'Manrope',sans-serif;font-size:13px;color:var(--ink);
+    outline:none;padding:4px 2px;
+  }
+  .al-test-search input::placeholder{color:var(--ink-soft);opacity:.7;font-size:12.5px;}
+  .al-search-btn{
+    background:linear-gradient(135deg,#6366f1,#4f46e5);
+    color:#fff;border:none;border-radius:8px;
+    padding:7px 14px;font-size:12.5px;font-weight:700;cursor:pointer;
+    font-family:'Manrope',sans-serif;transition:all .15s;
+    flex-shrink:0;
+  }
+  .al-search-btn:hover{filter:brightness(1.1);}
+
+  /* So'nggi testlar grid — juda ixcham */
+  .al-recent-grid{
+    display:grid;grid-template-columns:repeat(2,1fr);
+    gap:6px;
+  }
+  .al-recent-item{
+    display:flex;align-items:center;gap:8px;
+    background:var(--card);border:1px solid var(--line);
+    border-radius:9px;padding:6px 9px;
+    transition:all .15s;
+  }
+  .al-recent-item:hover{transform:translateY(-1px);box-shadow:0 2px 6px -3px rgba(14,32,56,0.1);}
+  .al-recent-ic{
+    width:26px;height:26px;border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;flex-shrink:0;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.38),0 3px 8px -5px rgba(14,32,56,.55);
+  }
+  .al-recent-ic svg{width:15px;height:15px;display:block;}
+  .al-recent-info{flex:1;min-width:0;line-height:1.2;}
+  .al-recent-name{font-size:11.5px;font-weight:700;color:var(--ink);margin-bottom:0;}
+  .al-recent-date{font-size:9.5px;color:var(--ink-soft);display:inline;margin-left:4px;}
+  .al-recent-score{
+    font-size:10.5px;font-weight:800;color:#fff;
+    padding:3px 7px;border-radius:100px;flex-shrink:0;
+    white-space:nowrap;
+  }
+  .al-recent-score.high{background:#16a34a;}
+  .al-recent-score.mid{background:#eab308;color:#1a1a1a;}
+  .al-recent-score.low{background:#dc2626;}
+  .al-recent-score.done{background:#16a34a;font-size:11px;}
+  .al-recent-empty{
+    grid-column:1/-1;text-align:center;padding:14px 10px;
+    color:var(--ink-soft);font-size:12px;
+    background:var(--card);border:1px dashed var(--line);
+    border-radius:9px;
+  }
+  @media(max-width:600px){
+    .al-recent-grid{grid-template-columns:1fr;}
+  }
+

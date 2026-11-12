@@ -1,0 +1,27 @@
+# Maxfiy fayllar
+.env
+.env.*
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Vercel
+.vercel/
+
+# Android build artifacts
+android-apk/build/
+android-apk/dist/
+android-apk/*.apk
+android-apk/*.idsig
+android-apk/englify.keystore
+android-apk/keystore.properties
+
+# OS / editor
+Thumbs.db
+.DS_Store
+.idea/
+.vscode/
