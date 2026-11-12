@@ -219,7 +219,7 @@
   function startSpeaking(){
     const state = smState;
     smState.screen = 'loading';
-    smState.aiPromise = aiGenerate('speaking', 'B2', 30000)
+    smState.aiPromise = aiGenerate('speaking', 'B2', 60000)
       .then(function(d){
         if(!d || typeof d.title !== 'string' || !Array.isArray(d.points) || d.points.length < 4) return null;
         const points = d.points.slice(0, 5).map(function(x){ return String(x || '').trim(); }).filter(Boolean);

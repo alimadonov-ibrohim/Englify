@@ -209,7 +209,7 @@
         </div>
       </div>`;
     const started = Date.now();
-    aiGenerate('writing', 'B2', 30000)
+    aiGenerate('writing', 'B2', 60000)
       .then(function(d){ return (d && d.topic) ? String(d.topic) : null; })
       .catch(function(e){ console.warn('Writing mavzusi AI bilan olinmadi, lokal bank ishlatiladi', e); return null; })
       .then(function(aiTopic){
@@ -477,7 +477,7 @@
       task: s.topic || '',
       parts: texts,
       essay: texts.join('\n\n')
-    }, 45000).then(function(data){
+    }, 60000).then(function(data){
       if(!data || !data.criteria) throw new Error('AI javobi noto\'g\'ri');
       renderWritingResult(aiMergeWritingResult(res, data));
     }).catch(function(err){

@@ -837,7 +837,7 @@
       },
       messages: history,
       message: text
-    }, 25000).then(function(data){
+    }, 60000).then(function(data){
       if(aisState.screen !== 'chat') return;
       const reply = data && data.reply ? String(data.reply).trim() : '';
       const aiFb = data && data.feedback ? String(data.feedback).trim() : '';
