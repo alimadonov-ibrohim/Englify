@@ -2,6 +2,14 @@
 
 Englify — ingliz va nemis tilini o'rganish uchun sayt: testlar, video diktantlar, listening/reading/speaking/writing mocklar, AI Speaking, Battle Mode, lug'at va admin panel. Sayt HTML qobig'i va bo'limlar bo'yicha ajratilgan CSS/JS fayllardan iborat — internet orqali ishlaydi, o'rnatish shart emas.
 
+## Live
+
+- Sayt: https://englify-eta.vercel.app
+- GitHub: https://github.com/alimadonov-ibrohim/Englify
+- APK yuklab olish: https://englify-eta.vercel.app/Englify.apk
+
+> Vercel'da AI `/api/ai/*` serverless funksiyalari orqali ishlaydi. API kaliti Vercel Environment Variables'da saqlanadi va repo'ga tushmaydi.
+
 ## Fayllar
 
 | Fayl | Vazifasi |
