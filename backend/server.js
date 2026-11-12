@@ -181,13 +181,22 @@ function upstreamError(status, text) {
   return err;
 }
 
+function aiTimeoutMs(opts) {
+  const envTimeout = Number(process.env.AI_TIMEOUT_MS || 0);
+  if (envTimeout > 0) return envTimeout;
+  const kind = String((opts && opts.kind) || '');
+  if (kind === 'advice' || kind === 'chat') return 20000;
+  if (((opts && opts.maxTokens) || 0) > 4096) return 50000;
+  return 25000;
+}
+
 async function callOpenAI(opts) {
   const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
   const base = String(process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1').replace(/\/+$/, '');
 
   async function attempt(useJson) {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), (opts.maxTokens || 0) > 4096 ? 90000 : 45000);
+    const timer = setTimeout(() => controller.abort(), aiTimeoutMs(opts));
     try {
       const history = (opts.messages || []).map(function(m){
         const role = m && m.role === 'assistant' ? 'assistant' : 'user';
@@ -245,7 +254,10 @@ function shouldTryGeminiFallback(err) {
   return status === 429 || status === 500 || status === 503 || status === 404 ||
     msg.indexOf('high demand') >= 0 || msg.indexOf('quota') >= 0 ||
     msg.indexOf('overloaded') >= 0 || msg.indexOf('temporarily') >= 0 ||
-    msg.indexOf('no longer available') >= 0 || msg.indexOf('not found') >= 0;
+    msg.indexOf('no longer available') >= 0 || msg.indexOf('not found') >= 0 ||
+    msg.indexOf('aborted') >= 0 || msg.indexOf('timeout') >= 0 ||
+    msg.indexOf('timed out') >= 0 || msg.indexOf('fetch failed') >= 0 ||
+    msg.indexOf('econnreset') >= 0;
 }
 
 async function callGemini(opts) {
