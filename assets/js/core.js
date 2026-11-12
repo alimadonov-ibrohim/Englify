@@ -317,7 +317,7 @@
 
   async function aiApiPost(path, body, timeoutMs) {
     const ctrl = new AbortController();
-    const timer = setTimeout(function(){ try { ctrl.abort(); } catch(e){} }, timeoutMs || 30000);
+    const timer = setTimeout(function(){ try { ctrl.abort(); } catch(e){} }, timeoutMs || 60000);
     try {
       const res = await fetch(API_BASE + path, {
         method: 'POST',
@@ -343,7 +343,7 @@
     const res = await aiApiPost('/api/ai/generate', {
       kind: kind,
       level: level || 'B2'
-    }, timeoutMs || 45000);
+    }, timeoutMs || 60000);
     return (res && res.data) ? res.data : null;
   }
 
