@@ -23,7 +23,7 @@
   };
 
   function adviceFormat(text){
-    let s = escapeHTML(text);
+    let s = escapeHtml(text);
     s = s.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
     s = s.replace(/`([^`\n]+)`/g, '<code>$1</code>');
     s = s.replace(/^\s*#{1,4}\s+/gm, '');
@@ -50,7 +50,7 @@
       const isUser = m.role === 'user';
       const pics = (Array.isArray(m.images) && m.images.length)
         ? '<div class="adv-msg-images">' + m.images.map(function(src){
-            return '<img src="' + escapeHTML(src) + '" alt="Yuborilgan rasm" onclick="adviceOpenImage(this.src)">';
+            return '<img src="' + escapeHtml(src) + '" alt="Yuborilgan rasm" onclick="adviceOpenImage(this.src)">';
           }).join('') + '</div>'
         : '';
       return '<div class="adv-msg ' + (isUser ? 'user' : 'ai') + '">' +
@@ -65,14 +65,14 @@
 
     const suggestions = !adviceState.started
       ? '<div class="adv-suggest">' + ADVICE_SUGGESTIONS.map(function(q){
-          return '<button type="button" data-prompt="' + escapeHTML(q) + '" onclick="adviceSendSuggestion(this.dataset.prompt)">' + escapeHTML(q) + '</button>';
+          return '<button type="button" data-prompt="' + escapeHtml(q) + '" onclick="adviceSendSuggestion(this.dataset.prompt)">' + escapeHtml(q) + '</button>';
         }).join('') + '</div>'
       : '';
 
     const attachPreview = adviceState.attachments.length
       ? '<div class="adv-attach-preview">' + adviceState.attachments.map(function(a, i){
           return '<div class="adv-thumb">' +
-            '<img src="' + escapeHTML(a.dataUrl) + '" alt="Rasm ' + (i + 1) + '" onclick="adviceOpenImage(this.src)">' +
+            '<img src="' + escapeHtml(a.dataUrl) + '" alt="Rasm ' + (i + 1) + '" onclick="adviceOpenImage(this.src)">' +
             '<button type="button" title="Rasmni olib tashlash" aria-label="Rasmni olib tashlash" onclick="adviceRemoveAttachment(' + i + ')">×</button>' +
             '</div>';
         }).join('') + '</div>'
@@ -118,7 +118,7 @@
             <textarea id="advice-input" class="adv-input" rows="1" maxlength="4000"
               placeholder="${adviceState.busy ? 'AI javob yozmoqda...' : 'Savolingizni yozing yoki rasm biriktiring... (Enter — yuborish)'}"
               oninput="adviceDraftInput(this)" onkeydown="adviceInputKey(event)"
-              ${adviceState.busy ? 'disabled' : ''}>${escapeHTML(adviceState.draft)}</textarea>
+              ${adviceState.busy ? 'disabled' : ''}>${escapeHtml(adviceState.draft)}</textarea>
             <button type="button" class="adv-send" id="advice-send" onclick="adviceSend()"
               title="Yuborish" ${adviceState.busy ? 'disabled' : ''}>➤</button>
           </div>

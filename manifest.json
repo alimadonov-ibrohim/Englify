@@ -1,7 +1,7 @@
 {
   "name": "Englify — Ingliz va Nemis tili markazi",
   "short_name": "Englify",
-  "description": "Englify — ingliz va nemis tilini o'rganish markazi: testlar, video diktantlar, AI speaking va imtihon simulyatsiyasi.",
+  "description": "Englify - ingliz va nemis tilini o'rganish markazi: testlar, video diktantlar va imtihon simulyatsiyasi.",
   "lang": "uz",
   "start_url": "Englify.html",
   "scope": ".",

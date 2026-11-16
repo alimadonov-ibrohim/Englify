@@ -13,11 +13,8 @@
 <meta name="color-scheme" content="light dark">
 <script>
   (function(){
-    var t = 'dark';
-    try { t = localStorage.getItem('sb_theme') || 'dark'; } catch(e){}
-    t = (t === 'light') ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', t);
-    try { localStorage.setItem('sb_theme', t); } catch(e){}
+    document.documentElement.setAttribute('data-theme', 'dark');
+    try { localStorage.setItem('sb_theme', 'dark'); } catch(e){}
   })();
 </script>
 <meta name="mobile-web-app-capable" content="yes">
@@ -47,6 +44,7 @@
   <link rel="stylesheet" href="assets/css/base.css">
   <link rel="stylesheet" href="assets/css/home.css">
   <link rel="stylesheet" href="assets/css/dashboard.css">
+<link rel="stylesheet" href="assets/css/admin-ai.css">
   <link rel="stylesheet" href="assets/css/results.css">
   <link rel="stylesheet" href="assets/css/profile.css">
   <link rel="stylesheet" href="assets/css/create-test.css">
@@ -55,7 +53,6 @@
   <link rel="stylesheet" href="assets/css/listening.css">
   <link rel="stylesheet" href="assets/css/reading.css">
   <link rel="stylesheet" href="assets/css/speaking.css">
-  <link rel="stylesheet" href="assets/css/ai-speaking.css">
   <link rel="stylesheet" href="assets/css/battle.css">
   <link rel="stylesheet" href="assets/css/full-exam.css">
   <link rel="stylesheet" href="assets/css/nav.css">
@@ -178,7 +175,6 @@
           <div class="brand-logo" style="width:32px;height:32px;"></div><span class="brand-name" style="font-family:'Fraunces',serif;font-weight:600;font-size:19px;">Englify</span>
         </div>
         <div class="theme-lang-controls" style="margin-left:auto;">
-          <button class="theme-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="Theme">🌙</button>
           <div class="avatar" id="dash-topbar-avatar" onclick="switchTab('profile')" style="width:36px;height:36px;font-size:14px;cursor:pointer;">A</div>
         </div>
       </div>
@@ -211,10 +207,6 @@
             </div>
             <div class="card" style="background:linear-gradient(135deg,#e11d48,#be185d);" onclick="openSpeaking()">
               <div class="card-left"><div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0"/><path d="M12 17.5V21M9 21h6"/></svg></div><div><h4>Speaking Mock</h4><p>Gapirishni o'rganing va sinab ko'ring</p></div></div>
-              <span>→</span>
-            </div>
-            <div class="card" style="background:linear-gradient(135deg,#10b981,#047857);" onclick="openAISpeaking()">
-              <div class="card-left"><div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3.5 12.7 8 17 9.7 12.7 11.4 11 16l-1.7-4.6L5 9.7 9.3 8 11 3.5z"/><path d="M18 14.5l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9.9-2.1z"/></svg></div><div><h4>AI Speaking</h4><p>Sun'iy intellekt bilan erkin suhbat</p></div></div>
               <span>→</span>
             </div>
             <div class="card" style="background:linear-gradient(135deg,#dc2626,#991b1b);" onclick="openBattle()">
@@ -431,7 +423,7 @@
             <div style="flex:1;min-width:0;">
               <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                 <h2 style="font-size:20px;margin:0;" id="prof-display-name">Foydalanuvchi</h2>
-                <span style="font-size:12px;color:var(--ink-soft);">✏️</span>
+                <button onclick="openProfileEditModal()" title="Profilni tahrirlash" aria-label="Profilni tahrirlash" style="background:var(--field);border:1px solid var(--line);color:var(--ink-soft);border-radius:8px;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;line-height:1;padding:0;">✏️</button>
               </div>
               <div style="font-size:13.5px;color:var(--blue-deep);font-weight:600;margin-top:2px;" id="prof-username">@user</div>
               <div style="font-size:13px;color:var(--ink-soft);margin-top:2px;" id="prof-email">email@example.com</div>
@@ -441,31 +433,26 @@
             </div>
           </div>
 
-          <!-- ILOVA: Telefonga yuklash (APK / PWA) -->
-          <div class="apk-card" id="apk-card">
-            <div class="apk-badge-row">
-              <span class="apk-badge">📱 Android</span>
-              <span class="apk-badge">🍎 iOS</span>
-              <span class="apk-badge">💻 Desktop</span>
-              <span class="apk-badge" id="apk-offline-badge">⚡ Offline</span>
-            </div>
-            <h3>📱 Englify ilovasi</h3>
-            <p>Haqiqiy Android APK — native ilova sifatida o'rnatiladi. Internet kerak emas, barcha testlar offline ishlaydi.</p>
-            <div class="apk-status" id="apk-status-msg">⏳ Yuklab olishga tayyorlanmoqda...</div>
-            <div class="apk-platforms">
-              <button class="apk-platform-btn primary" id="apk-dl-btn" onclick="apkDownload()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                <span>Yuklab olish</span>
-              </button>
-              <button class="apk-platform-btn" id="apk-install-btn" style="display:none;" onclick="pwaInstallNow()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-                <span>O'rnatish</span>
-              </button>
-              <button class="apk-platform-btn" id="apk-qr-btn" onclick="openApkModal()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><line x1="14" y1="14" x2="14" y2="17"/><line x1="17" y1="14" x2="21" y2="14"/><line x1="14" y1="20" x2="21" y2="20"/><line x1="17" y1="17" x2="21" y2="17"/></svg>
-                <span>QR kod</span>
-              </button>
-            </div>
+          <!-- ILOVA: ixcham APK bo'limi -->
+          <div style="font-size:12px;font-weight:800;letter-spacing:.04em;color:var(--ink-soft);margin:0 4px 10px;">ILOVA</div>
+          <div style="background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:22px;">
+            <button class="prof-menu-item" id="apk-dl-btn" onclick="apkDownload()">
+              <span class="prof-menu-left">
+                <span class="prof-menu-icon pm-indigo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
+                <span><strong>APK yuklab olish</strong><small class="apk-status" id="apk-status-msg">Android ilova · ~304 KB · Offline</small></span>
+              </span>
+              <span style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+                <span class="apk-dl-action" id="apk-dl-label">Yuklab olish</span>
+                <span class="prof-menu-arrow">›</span>
+              </span>
+            </button>
+            <button class="prof-menu-item" onclick="openApkModal()">
+              <span class="prof-menu-left">
+                <span class="prof-menu-icon pm-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><line x1="14" y1="14" x2="14" y2="17"/><line x1="17" y1="14" x2="21" y2="14"/><line x1="14" y1="20" x2="21" y2="20"/><line x1="17" y1="17" x2="21" y2="17"/></svg></span>
+                <span><strong>Boshqa qurilmada ochish</strong><small>QR kod orqali telefonda oching</small></span>
+              </span>
+              <span class="prof-menu-arrow">›</span>
+            </button>
           </div>
 
           <!-- APK QR modal (yangilangan — tabbed) -->
@@ -499,7 +486,7 @@
                 <div style="background:var(--field);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:10px;">
                   <div style="font-size:11px;font-weight:700;color:var(--ink-soft);margin-bottom:4px;">FAYL:</div>
                   <div id="apk-manual-fname" style="font-size:13px;font-weight:700;color:var(--ink);word-break:break-all;">Englify.apk</div>
-                  <div id="apk-manual-size" style="font-size:11px;color:var(--ink-soft);margin-top:4px;">~210 KB · Android 7.0+ · Offline</div>
+                  <div id="apk-manual-size" style="font-size:11px;color:var(--ink-soft);margin-top:4px;">~304 KB · Android 7.0+ · Offline</div>
                 </div>
                 <div style="background:var(--field);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:12px;">
                   <div style="font-size:11px;font-weight:700;color:var(--ink-soft);margin-bottom:4px;">HAVOLA:</div>
@@ -520,15 +507,15 @@
               <span class="prof-menu-left"><span class="prof-menu-icon pm-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 20v-6M12 20V8M18 20V4"/></svg></span><span><strong>Statistika</strong><small>Testlar va natijalar statistikasi</small></span></span>
               <span class="prof-menu-arrow">›</span>
             </button>
-            <button class="prof-menu-item" onclick="switchTab('home'); setTimeout(function(){ openCreate(); }, 50);">
+            <button class="prof-menu-item" onclick="openMyTests()">
               <span class="prof-menu-left"><span class="prof-menu-icon pm-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.8 3.6a2.1 2.1 0 0 1 3 3L8.4 18l-4.2 1.2L5.4 15 16.8 3.6z"/><path d="M14.4 6l3 3"/></svg></span><span><strong>Mening testlarim</strong><small>Yaratgan testlaringizni boshqarish</small></span></span>
               <span class="prof-menu-arrow">›</span>
             </button>
-            <button class="prof-menu-item" onclick="switchTab('results')">
+            <button class="prof-menu-item" onclick="openRatingModal()">
               <span class="prof-menu-left"><span class="prof-menu-icon pm-gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8v6a4 4 0 0 1-8 0V3z"/><path d="M8 5H5v1a3.5 3.5 0 0 0 3.5 3.5M16 5h3v1a3.5 3.5 0 0 1-3.5 3.5"/><path d="M12 13v5M9 21h6"/></svg></span><span><strong>Reyting</strong><small>O'rtacha ball</small></span></span>
               <span class="prof-menu-arrow">›</span>
             </button>
-            <button class="prof-menu-item" onclick="document.getElementById('profile-cert-section').style.display='block'; document.getElementById('profile-cert-section').scrollIntoView({behavior:'smooth'}); updateCertificateAvailability();">
+            <button class="prof-menu-item" onclick="openProfileCertSection()">
               <span class="prof-menu-left"><span class="prof-menu-icon pm-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="5"/><path d="M9 13.2 8 22l4-2.5 4 2.5-1-8.8"/></svg></span><span><strong>Sertifikat</strong><small>Natijalaringiz asosida sertifikat oling</small></span></span>
               <span class="prof-menu-arrow">›</span>
             </button>
@@ -545,15 +532,14 @@
               <span class="prof-menu-left"><span class="prof-menu-icon pm-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5.5 20c0-3.3 2.9-5.8 6.5-5.8s6.5 2.5 6.5 5.8"/></svg></span><span><strong>Profilni tahrirlash</strong><small>Ism, email va parolni o'zgartiring</small></span></span>
               <span class="prof-menu-arrow">›</span>
             </button>
-            <button class="prof-menu-item" onclick="toggleTheme()">
-              <span class="prof-menu-left"><span class="prof-menu-icon pm-indigo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.3 0 2-.9 2-2 0-.9-.5-1.4-.5-2.2 0-.9.8-1.6 1.8-1.6h1.6c2.3 0 4.1-1.8 4.1-4.1C21 6.4 17 3 12 3z"/><circle cx="7.6" cy="10.5" r="1.1" fill="currentColor" stroke="none"/><circle cx="10" cy="6.9" r="1.1" fill="currentColor" stroke="none"/><circle cx="7.2" cy="15" r="1.1" fill="currentColor" stroke="none"/></svg></span><span><strong>Ko'rinish</strong><small id="prof-theme-label">Yorug' / Qorong'u rejim</small></span></span>
-              <span class="prof-menu-arrow">›</span>
+            <button class="prof-menu-item" onclick="openNotifications()">
+              <span class="prof-menu-left"><span class="prof-menu-icon pm-red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8.5a6 6 0 1 0-12 0c0 4.5-2 5.8-2 5.8h16s-2-1.3-2-5.8"/><path d="M10.2 19.5a2 2 0 0 0 3.6 0"/></svg></span><span><strong>Bildirishnomalar</strong><small id="prof-notif-sub">Bildirishnomalar yoqildi</small></span></span>
+              <span style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+                <span id="prof-notif-dot" style="display:none;width:8px;height:8px;border-radius:50%;background:#ef4444;"></span>
+                <span class="prof-menu-arrow">›</span>
+              </span>
             </button>
-            <button class="prof-menu-item" onclick="alert('Bildirishnomalar hozircha yoqilmagan (demo).')">
-              <span class="prof-menu-left"><span class="prof-menu-icon pm-red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8.5a6 6 0 1 0-12 0c0 4.5-2 5.8-2 5.8h16s-2-1.3-2-5.8"/><path d="M10.2 19.5a2 2 0 0 0 3.6 0"/></svg></span><span><strong>Bildirishnomalar</strong><small>Bildirishnomalar yoqildi</small></span></span>
-              <span class="prof-menu-arrow">›</span>
-            </button>
-            <button class="prof-menu-item" onclick="cycleLanguage()">
+            <button class="prof-menu-item" onclick="openLanguageModal()">
               <span class="prof-menu-left"><span class="prof-menu-icon pm-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.4 2.3 3.7 5.3 3.7 8.5s-1.3 6.2-3.7 8.5c-2.4-2.3-3.7-5.3-3.7-8.5S9.6 5.8 12 3.5z"/></svg></span><span><strong>Til</strong><small id="prof-lang-label">O'zbek tili</small></span></span>
               <span class="prof-menu-arrow">›</span>
             </button>
@@ -562,7 +548,7 @@
           <!-- MA'LUMOT -->
           <div style="font-size:12px;font-weight:800;letter-spacing:.04em;color:var(--ink-soft);margin:0 4px 10px;">MA'LUMOT</div>
           <div style="background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:22px;">
-            <button class="prof-menu-item" onclick="alert('Qo\\'llanma: Mock testlarni topshiring, natijalarni kuzating va sertifikat oling.')">
+            <button class="prof-menu-item" onclick="openGuideModal()">
               <span class="prof-menu-left"><span class="prof-menu-icon pm-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.4C10.4 5.1 8.2 4.5 4.5 4.5v13c3.7 0 5.9.6 7.5 1.9 1.6-1.3 3.8-1.9 7.5-1.9v-13c-3.7 0-5.9.6-7.5 1.9z"/><path d="M12 6.4v13"/></svg></span><span><strong>Qo'llanma</strong><small>Ilova qo'llanmasi va maslahatlar</small></span></span>
               <span class="prof-menu-arrow">›</span>
             </button>
@@ -570,7 +556,7 @@
               <span class="prof-menu-left"><span class="prof-menu-icon pm-red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a2 2 0 0 0 2 2h2l7 4V5L7 9H5a2 2 0 0 0-2 2z"/><path d="M18 9a4 4 0 0 1 0 6"/></svg></span><span><strong>Yangiliklar kanali</strong><small>@yuksalishkana</small></span></span>
               <span class="prof-menu-arrow">›</span>
             </a>
-            <button class="prof-menu-item" onclick="alert('Yordam: Savollaringiz bo\\'lsa support@englify.uz ga yozing.')">
+            <button class="prof-menu-item" onclick="openHelpModal()">
               <span class="prof-menu-left"><span class="prof-menu-icon pm-gray"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.3c-.9.4-1.5 1-1.5 2.3"/><circle cx="11.5" cy="17" r="1.1" fill="currentColor" stroke="none"/></svg></span><span><strong>Yordam</strong><small>Qanday foydalaniladi?</small></span></span>
               <span class="prof-menu-arrow">›</span>
             </button>
@@ -578,7 +564,7 @@
               <span class="prof-menu-left"><span class="prof-menu-icon pm-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.8a8.2 8.2 0 0 1-11.9 7.3L4 21l1.9-5.1A8.2 8.2 0 1 1 21 11.8z"/></svg></span><span><strong>Qo'llab-quvvatlash</strong><small>@yuksalishhelp</small></span></span>
               <span class="prof-menu-arrow">›</span>
             </a>
-            <button class="prof-menu-item" onclick="alert('Maxfiylik: Ma\\'lumotlaringiz faqat brauzeringizda (localStorage) saqlanadi.')">
+            <button class="prof-menu-item" onclick="openPrivacyModal()">
               <span class="prof-menu-left"><span class="prof-menu-icon pm-gray"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10" width="14" height="10" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span><span><strong>Maxfiylik</strong><small>Maxfiylik siyosati</small></span></span>
               <span class="prof-menu-arrow">›</span>
             </button>
@@ -678,12 +664,6 @@
         <div id="speaking" class="panel">
           <button class="back" onclick="speakingBack()">← Orqaga</button>
           <div id="speaking-content"></div>
-        </div>
-
-        <!-- AI SPEAKING -->
-        <div id="aispeaking" class="panel">
-          <button class="back" onclick="aispeakingBack()">← Orqaga</button>
-          <div id="aispeaking-content"></div>
         </div>
 
         <!-- AI BILAN MASLAHAT -->
@@ -791,12 +771,15 @@
       <div style="display:flex;align-items:center;gap:8px;padding:8px 10px 18px;cursor:pointer;" onclick="showView('home')"><div class="brand-logo" style="width:30px;height:30px;"></div><span class="brand-name" style="font-family:'Fraunces',serif;font-weight:600;font-size:18px;">Englify</span><span style="font-size:12px;color:var(--ink-soft);">Admin</span></div>
       <nav style="display:flex;flex-direction:column;gap:4px;flex:1;">
         <a href="#" class="dash-nav-link active" data-ap="dash" onclick="adminShow('dash');return false;"><span class="admin-nav-ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.2c.3 0 .6.1.84.29l7.5 5.9c.36.28.57.71.57 1.17V19a2.5 2.5 0 0 1-2.5 2.5h-3.66a1.1 1.1 0 0 1-1.1-1.1v-5.15a1.65 1.65 0 0 0-3.3 0v5.15a1.1 1.1 0 0 1-1.1 1.1H5.59A2.5 2.5 0 0 1 3.09 19v-8.44c0-.46.21-.89.57-1.17l7.5-5.9c.24-.19.54-.29.84-.29z"/></svg></span>Dashboard</a>
+        <a href="#" class="dash-nav-link" data-ap="ai" onclick="adminShow('ai');return false;"><span class="admin-nav-ic ani-purple"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8L12 2z"/></svg></span>AI Admin</a>
         <a href="#" class="dash-nav-link" data-ap="users" onclick="adminShow('users');return false;"><span class="admin-nav-ic ani-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 19c0-3 2.7-5 6-5s6 2 6 5"/><path d="M16 5.2a3 3 0 0 1 0 5.6M17.5 14.3c2.1.5 3.5 2.1 3.5 4.2"/></svg></span>Foydalanuvchilar</a>
         <a href="#" class="dash-nav-link" data-ap="courses" onclick="adminShow('courses');return false;"><span class="admin-nav-ic ani-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 7.5 12 12l9-4.5L12 3z"/><path d="M3 12l9 4.5 9-4.5M3 16.5 12 21l9-4.5"/></svg></span>Kurslar</a>
         <a href="#" class="dash-nav-link" data-ap="tests" onclick="adminShow('tests');return false;"><span class="admin-nav-ic ani-indigo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2.5"/><path d="M9 4.5V3h6v1.5M9 11h6M9 15h4"/></svg></span>Testlar</a>
         <a href="#" class="dash-nav-link" data-ap="results" onclick="adminShow('results');return false;"><span class="admin-nav-ic ani-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 20v-6M12 20V8M18 20V4"/></svg></span>Natijalar</a>
         <a href="#" class="dash-nav-link" data-ap="dict" onclick="adminShow('dict');return false;"><span class="admin-nav-ic ani-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.4C10.4 5.1 8.2 4.5 4.5 4.5v13c3.7 0 5.9.6 7.5 1.9 1.6-1.3 3.8-1.9 7.5-1.9v-13c-3.7 0-5.9.6-7.5 1.9z"/><path d="M12 6.4v13"/></svg></span>Lug‘at</a>
         <a href="#" class="dash-nav-link" data-ap="notif" onclick="adminShow('notif');return false;"><span class="admin-nav-ic ani-red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8.5a6 6 0 1 0-12 0c0 4.5-2 5.8-2 5.8h16s-2-1.3-2-5.8"/><path d="M10.2 19.5a2 2 0 0 0 3.6 0"/></svg></span>Bildirishnomalar</a>
+        <a href="#" class="dash-nav-link" data-ap="certs" onclick="adminShow('certs');return false;"><span class="admin-nav-ic ani-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.5 13l1.5 8-5-3-5 3 1.5-8"/></svg></span>Sertifikatlar</a>
+        <a href="#" class="dash-nav-link" data-ap="settings" onclick="adminShow('settings');return false;"><span class="admin-nav-ic ani-gray"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>Sozlamalar</a>
         <a href="#" class="dash-nav-link" data-ap="logs" onclick="adminShow('logs');return false;"><span class="admin-nav-ic ani-gray"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="4" cy="6" r="1.2" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1.2" fill="currentColor" stroke="none"/></svg></span>Loglar</a>
       </nav>
       <div style="border-top:1px solid var(--line);padding-top:12px;margin-top:12px;">
@@ -808,7 +791,6 @@
     <div style="flex:1;min-width:0;display:flex;flex-direction:column;">
       <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-bottom:1px solid var(--line);background:var(--card);">
         <h2 id="admin-page-title" style="font-size:17px;font-weight:800;">Dashboard</h2>
-        <button class="dash-btn dash-btn-outline" onclick="toggleTheme()">🌙</button>
       </div>
       <div style="padding:24px;flex:1;" id="admin-content">
         <!-- panels injected by JS -->
@@ -831,13 +813,13 @@
   <!-- JS: bo'limlar bo'yicha alohida fayllar (yuklanish tartibi muhim) -->
   <script src="assets/js/core.js"></script>
   <script src="assets/js/pwa.js"></script>
+  <script src="assets/js/profile.js"></script>
   <script src="assets/js/navigation.js"></script>
   <script src="assets/js/results.js"></script>
   <script src="assets/js/writing.js"></script>
   <script src="assets/js/listening.js"></script>
   <script src="assets/js/reading.js"></script>
   <script src="assets/js/speaking.js"></script>
-  <script src="assets/js/ai-speaking.js"></script>
   <script src="assets/js/advice.js"></script>
   <script src="assets/js/battle-setup.js"></script>
   <script src="assets/js/videos.js"></script>

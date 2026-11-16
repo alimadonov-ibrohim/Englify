@@ -11,7 +11,7 @@
     const tp = testProgress;
     // Rasmiy mock testlar (sertifikat uchun) — faqat 5 ta:
     // Listening, Reading, Writing, Speaking, Daily
-    // AI Speaking, Battle, Videos — amaliyot, sertifikatga ta'sir qilmaydi
+    // Battle, Videos — amaliyot, sertifikatga ta'sir qilmaydi
     const listeningOk = tp.listening.completed && tp.listening.band >= 6.5;
     const readingOk   = tp.reading.completed   && tp.reading.band >= 6.5;
     const writingOk   = tp.writing.completed   && tp.writing.band >= 6.0;
@@ -187,6 +187,7 @@
       };
       earnedCertificates.unshift(cert);
       renderCertificates();
+      try { if(typeof saveUserProgress === 'function') saveUserProgress(); } catch(e){}
     }
 
     showCertificateModal(cert);

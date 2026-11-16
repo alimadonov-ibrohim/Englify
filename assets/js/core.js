@@ -275,6 +275,191 @@
     }
   }
 
+  // --- STUDIO TTS: Gemini bilan haqiqiy, tiniq ovoz ---
+  // Matn kichik bo'laklarga bo'linadi; har bir bo'lak serverda WAV'ga aylantiriladi
+  // va Audio elementi orqali ijro etiladi. Server ishlamasa brauzer TTS'ga qaytadi.
+  const SB_STUDIO_VOICE = 'Kore';
+  const SB_STUDIO_CHUNK = 300;
+  const SB_STUDIO_CACHE_MAX = 10;
+  const sbStudioCache = new Map();
+  let sbStudioToken = 0;
+  let sbStudioAudio = null;
+  let sbStudioCancel = null;
+  let sbStudioDisabledUntil = 0;
+
+  function sbStudioSplit(text, maxLen){
+    const clean = String(text || '').replace(/\s+/g, ' ').trim();
+    if(!clean) return [];
+    const limit = maxLen || SB_STUDIO_CHUNK;
+    const sentences = clean.match(/[^.!?]+[.!?]+["']?|[^.!?]+$/g) || [clean];
+    const chunks = [];
+    let current = '';
+    function pushPart(part){
+      part = part.trim();
+      if(!part) return;
+      if(current && (current + ' ' + part).length > limit){
+        chunks.push(current);
+        current = part;
+      } else {
+        current = current ? current + ' ' + part : part;
+      }
+    }
+    sentences.forEach(function(sentence){
+      let part = sentence.trim();
+      while(part.length > limit){
+        let cut = part.lastIndexOf(',', limit);
+        if(cut < limit * 0.45) cut = part.lastIndexOf(' ', limit);
+        if(cut < limit * 0.45) cut = limit;
+        pushPart(part.slice(0, cut + 1));
+        part = part.slice(cut + 1).trim();
+      }
+      pushPart(part);
+    });
+    if(current) chunks.push(current);
+    return chunks;
+  }
+
+  function sbStudioStop(){
+    sbStudioToken++;
+    const cancel = sbStudioCancel;
+    sbStudioCancel = null;
+    if(cancel){ try{ cancel(); }catch(e){} }
+    if(sbStudioAudio){ try{ sbStudioAudio.pause(); }catch(e){} sbStudioAudio = null; }
+    try { sbTtsStop(); } catch(e){}
+  }
+
+  function sbStudioCacheUrl(key, b64, mime){
+    try {
+      const bin = atob(b64);
+      const bytes = new Uint8Array(bin.length);
+      for(let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const url = URL.createObjectURL(new Blob([bytes], { type: mime || 'audio/wav' }));
+      sbStudioCache.set(key, url);
+      if(sbStudioCache.size > SB_STUDIO_CACHE_MAX){
+        const oldest = sbStudioCache.keys().next().value;
+        if(oldest){
+          try { URL.revokeObjectURL(sbStudioCache.get(oldest)); } catch(e){}
+          sbStudioCache.delete(oldest);
+        }
+      }
+      return url;
+    } catch(e){
+      return 'data:' + (mime || 'audio/wav') + ';base64,' + b64;
+    }
+  }
+
+  async function sbStudioFetchChunk(text, voice){
+    const key = voice + '|' + text;
+    if(sbStudioCache.has(key)) return sbStudioCache.get(key);
+    if(Date.now() < sbStudioDisabledUntil) throw new Error('studio-tts-disabled');
+
+    const ctrl = new AbortController();
+    const timer = setTimeout(function(){ try{ ctrl.abort(); }catch(e){} }, 30000);
+    try {
+      const res = await fetch(API_BASE + '/api/ai/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: text, voice: voice }),
+        signal: ctrl.signal
+      });
+      let data = null;
+      try { data = await res.json(); } catch(e){ data = null; }
+      if(!res.ok || !data || !data.audio){
+        const err = new Error((data && data.detail) || ('TTS HTTP ' + res.status));
+        err.status = res.status;
+        if(res.status === 404 || res.status === 503) sbStudioDisabledUntil = Date.now() + 10 * 60 * 1000;
+        else if(res.status === 429) sbStudioDisabledUntil = Date.now() + 60 * 1000;
+        throw err;
+      }
+      return sbStudioCacheUrl(key, data.audio, data.mime);
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  function sbStudioPlay(url, rate){
+    return new Promise(function(resolve, reject){
+      const audio = new Audio(url);
+      sbStudioAudio = audio;
+      audio.playbackRate = rate || 1;
+      audio.volume = 1;
+      let done = false;
+      const cancel = function(){
+        if(done) return;
+        done = true;
+        if(sbStudioCancel === cancel) sbStudioCancel = null;
+        if(sbStudioAudio === audio) sbStudioAudio = null;
+        try { audio.pause(); } catch(e){}
+        reject(new Error('stopped'));
+      };
+      function finish(ok){
+        if(done) return;
+        done = true;
+        if(sbStudioCancel === cancel) sbStudioCancel = null;
+        if(sbStudioAudio === audio) sbStudioAudio = null;
+        if(ok) resolve(); else reject(new Error('playback'));
+      }
+      sbStudioCancel = cancel;
+      audio.onended = function(){ finish(true); };
+      audio.onerror = function(){ finish(false); };
+      audio.play().catch(function(){ finish(false); });
+    });
+  }
+
+  async function sbStudioSpeak(text, opts){
+    opts = opts || {};
+    const chunks = sbStudioSplit(text, opts.maxChunk || SB_STUDIO_CHUNK);
+    if(!chunks.length){
+      if(opts.onDone) setTimeout(opts.onDone, 0);
+      return;
+    }
+    // Avvalgi ijroni to'xtatamiz (ovoz ustma-ust tushmasligi uchun)
+    try { sbStudioStop(); } catch(e){}
+    const token = ++sbStudioToken;
+    const voice = opts.voice || SB_STUDIO_VOICE;
+    const rate = (opts.rate != null ? opts.rate : 1.0);
+
+    function fallback(from){
+      if(token !== sbStudioToken) return;
+      if(opts.onFallback) try{ opts.onFallback(); }catch(e){}
+      sbTtsSpeak(chunks.slice(from).join(' '), {
+        rate: 0.95,
+        pitch: 1,
+        volume: 1,
+        onStart: opts.onStart,
+        onDone: opts.onDone
+      });
+    }
+
+    let pending = sbStudioFetchChunk(chunks[0], voice).then(function(u){ return { url: u }; })
+      .catch(function(e){ return { error: e }; });
+
+    for(let i = 0; i < chunks.length; i++){
+      if(token !== sbStudioToken) return;
+      const got = await pending;
+      if(token !== sbStudioToken) return;
+      if(got.error){ fallback(i); return; }
+
+      if(i + 1 < chunks.length){
+        const nextText = chunks[i + 1];
+        pending = sbStudioFetchChunk(nextText, voice).then(function(u){ return { url: u }; })
+          .catch(function(e){ return { error: e }; });
+      }
+
+      if(i === 0 && opts.onStart) try{ opts.onStart(); }catch(e){}
+      if(opts.onChunk) try{ opts.onChunk(i, chunks[i], chunks.length); }catch(e){}
+      try {
+        await sbStudioPlay(got.url, rate);
+      } catch(e){
+        if(token !== sbStudioToken) return;
+        fallback(i);
+        return;
+      }
+      if(opts.onProgress) try{ opts.onProgress((i + 1) / chunks.length, i + 1, chunks.length); }catch(e){}
+    }
+    if(token === sbStudioToken && opts.onDone) opts.onDone();
+  }
+
   // --- AUTH + BACKEND API ---
   // Lokal: node backend/server.js → http://127.0.0.1:8000
   // Vercel: /api/* same-origin serverless funksiyalar orqali ishlaydi.

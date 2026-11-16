@@ -1,19 +1,16 @@
 // Englify — theme-language
-  // ========== THEME (Qorong'u / Yorug') ==========
+  // ========== THEME — sayt doim bir xil qora fonda ishlaydi ==========
   function getTheme(){
-    return localStorage.getItem('sb_theme') || 'light';
+    return 'dark';
   }
-  function applyTheme(theme){
-    document.documentElement.setAttribute('data-theme', theme === 'dark' ? 'dark' : 'light');
-    localStorage.setItem('sb_theme', theme);
+  function applyTheme(){
+    document.documentElement.setAttribute('data-theme', 'dark');
+    try { localStorage.setItem('sb_theme', 'dark'); } catch(e){}
     const btn = document.getElementById('theme-toggle-btn');
-    if(btn) btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+    if(btn) btn.textContent = '☀️';
   }
   function toggleTheme(){
-    const next = getTheme() === 'dark' ? 'light' : 'dark';
-    applyTheme(next);
-    const themeLab = document.getElementById('prof-theme-label');
-    if(themeLab) themeLab.textContent = next === 'dark' ? "Qorong'u rejim" : "Yorug' rejim";
+    applyTheme();
   }
 
   // ========== MULTI LANGUAGE (uz / en / de) ==========

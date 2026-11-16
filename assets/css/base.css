@@ -1,39 +1,39 @@
 /* Englify — base */
   /* --- ASOSIY STILLAR --- */
   :root{
-    --ink:#0e2038;
-    --ink-soft:#4a5c70;
-    --paper:#f4f7fb;
-    --card:#ffffff;
-    --line:#dde6f0;
-    --blue:#2f6fd6;
-    --blue-deep:#123a75;
-    --blue-tint:#e8f0fc;
-    --amber:#1d8fd6;
-    --amber-deep:#0f5aa3;
-    --amber-tint:#eaf4fd;
+    --ink:#e8eef7;
+    --ink-soft:#9aadc2;
+    --paper:#000000;
+    --card:#000000;
+    --line:#242424;
+    --blue:#5b8def;
+    --blue-deep:#8ab4ff;
+    --blue-tint:#101827;
+    --amber:#4db3f0;
+    --amber-deep:#7cc8f5;
+    --amber-tint:#101c26;
     --radius-lg:22px;
     --radius-md:14px;
     --radius-sm:9px;
-    --header-bg:rgba(244,247,251,0.86);
-    --shadow:rgba(14,32,56,0.08);
-    --field:#f2f6fb;
+    --header-bg:rgba(0,0,0,0.92);
+    --shadow:rgba(0,0,0,0.6);
+    --field:#0d0d0d;
   }
   [data-theme="dark"]{
     --ink:#e8eef7;
     --ink-soft:#9aadc2;
     --paper:#000000;
-    --card:#0d0d0d;
-    --line:#262626;
+    --card:#000000;
+    --line:#242424;
     --blue:#5b8def;
     --blue-deep:#8ab4ff;
-    --blue-tint:#152238;
+    --blue-tint:#101827;
     --amber:#4db3f0;
     --amber-deep:#7cc8f5;
-    --amber-tint:#152536;
-    --header-bg:rgba(0,0,0,0.86);
+    --amber-tint:#101c26;
+    --header-bg:rgba(0,0,0,0.92);
     --shadow:rgba(0,0,0,0.6);
-    --field:#161616;
+    --field:#0d0d0d;
   }
   [data-theme="dark"] header{
     background:var(--header-bg);

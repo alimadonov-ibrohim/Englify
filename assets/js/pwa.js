@@ -61,8 +61,9 @@
     // Status yangilash
     const st = document.getElementById('apk-status-msg');
     if(st){ st.className = 'apk-status ok'; st.textContent = '✓ Ilova o\'rnatilgan! Bosh ekrandan oching.'; }
+    apkSetDlLabel('✓ O\'rnatilgan');
     const dl = document.getElementById('apk-dl-btn');
-    if(dl){ dl.querySelector('span').textContent = '✓ O\'rnatilgan'; dl.disabled = true; dl.style.opacity = '.7'; }
+    if(dl){ dl.disabled = true; dl.style.opacity = '.7'; }
     // Banner xabar
     if(navigator.serviceWorker && navigator.serviceWorker.controller){
       // SW orqali xabar yuborish mumkin
@@ -474,6 +475,9 @@
     }
     const adminEntry = document.getElementById('admin-panel-entry');
     if(adminEntry) adminEntry.style.display = admin ? 'flex' : 'none';
+
+    // Bildirishnoma belgisi
+    try { if(typeof updateNotifBadge === 'function') updateNotifBadge(); } catch(e){}
   }
 
   function cycleLanguage(){
@@ -509,6 +513,12 @@
       return location.origin + dir + APK_FILE;
     }catch(e){ return ''; }
   }
+  function apkSetDlLabel(txt){
+    const lab = document.getElementById('apk-dl-label');
+    if(lab){ lab.textContent = txt; return; }
+    const dl = document.getElementById('apk-dl-btn');
+    if(dl){ const span = dl.querySelector('span'); if(span) span.textContent = txt; }
+  }
   function apkDownload(){
     // 1) Agar ilova ichida bo'lsa — hech narsa qilmaslik
     if(apkInApp()){
@@ -520,7 +530,8 @@
     const st = document.getElementById('apk-status-msg');
     if(st){ st.className = 'apk-status'; st.textContent = '⏳ APK yuklanmoqda...'; }
     const dl = document.getElementById('apk-dl-btn');
-    if(dl){ dl.disabled = true; dl.querySelector('span').textContent = '⏳ Yuklanmoqda...'; }
+    if(dl) dl.disabled = true;
+    apkSetDlLabel('⏳ Yuklanmoqda...');
 
     // APK fayl URL — joriy sahifa bilan bir xil papkada
     const apkUrlLink = (function(){
@@ -541,19 +552,17 @@
       a.click();
       a.remove();
       if(st){ st.className = 'apk-status ok'; st.textContent = '✓ APK yuklab olindi! Downloads papkasida.'; }
-      if(dl){
-        dl.disabled = false;
-        dl.querySelector('span').textContent = '✓ Yuklab olindi';
-        setTimeout(function(){
-          if(dl && !dl.disabled){
-            dl.querySelector('span').textContent = 'Yuklab olish';
-          }
-        }, 3000);
-      }
+      if(dl) dl.disabled = false;
+      apkSetDlLabel('✓ Yuklab olindi');
+      setTimeout(function(){
+        if(dl && !dl.disabled){
+          apkSetDlLabel('Yuklab olish');
+        }
+      }, 3000);
       // 5 sekunddan keyin statusni yangilash
       setTimeout(function(){
         if(st && st.classList.contains('apk-status')){
-          st.textContent = '⬇️ Yuklashga tayyor — 210 KB APK.';
+          st.textContent = '⬇️ Yuklashga tayyor — 304 KB APK.';
         }
       }, 5000);
       return;
@@ -573,10 +582,12 @@
       a.remove();
       setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
       if(st){ st.className = 'apk-status ok'; st.textContent = '✓ HTML yuklab olindi!'; }
-      if(dl){ dl.disabled = false; dl.querySelector('span').textContent = '✓ Yuklab olindi'; }
+      if(dl) dl.disabled = false;
+      apkSetDlLabel('✓ Yuklab olindi');
     }catch(e){
       if(st){ st.className = 'apk-status err'; st.textContent = '✗ Yuklab bo\'lmadi: ' + (e.message || e); }
-      if(dl){ dl.disabled = false; dl.querySelector('span').textContent = 'Yuklab olish'; }
+      if(dl) dl.disabled = false;
+      apkSetDlLabel('Yuklab olish');
     }
   }
 
@@ -651,17 +662,15 @@
 
   function apkInitState(){
     const dl = document.getElementById('apk-dl-btn');
-    if(!dl) return;
     const st = document.getElementById('apk-status-msg');
     // Standalone (o'rnatilgan PWA) rejimda
     if(apkInApp()){
       if(dl){
-        const span = dl.querySelector('span');
-        if(span) span.textContent = '✓ Ilova ichida';
         dl.disabled = true;
         dl.style.opacity = '.88';
         dl.style.cursor = 'default';
       }
+      apkSetDlLabel('✓ Ilova ichida');
       if(st){ st.className = 'apk-status ok'; st.textContent = '✓ Ilova o\'rnatilgan — offline rejimda ishlamoqda.'; }
       // Install tugmasini yashirish
       const inst = document.getElementById('apk-install-btn');
@@ -670,12 +679,11 @@
     }
     // Online rejimda — tayyor
     if(st){
+      st.className = 'apk-status';
       if(location.protocol === 'http:' || location.protocol === 'https:'){
-        st.className = 'apk-status';
-        st.textContent = '⬇️ Yuklab olishga tayyor — offline ishlaydi.';
+        st.textContent = 'Android ilova · ~304 KB · Offline';
       } else {
-        st.className = 'apk-status';
-        st.textContent = '⬇️ Yuklab olishga tayyor.';
+        st.textContent = 'Yuklab olishga tayyor · ~304 KB';
       }
     }
     // PWA install tugmasini ko'rsatish (agar brauzer qo'llab-quvvatlasa)
@@ -694,25 +702,6 @@
   // Brauzer yordamida o'rnatishni tekshirish (Chrome Android)
   function pwaCanInstall(){
     return !!deferredPrompt;
-  }
-
-  function openProfileEditModal(){
-    const session = getSession();
-    if(!session){ showView('login'); return; }
-    const name = prompt('Yangi ism-familiya:', session.name || '');
-    if(name === null) return;
-    const trimmed = name.trim();
-    if(!trimmed){ alert('Ism bo\'sh bo\'lishi mumkin emas'); return; }
-
-    const users = getUsers();
-    if(users[session.email]){
-      users[session.email].name = trimmed;
-      saveUsers(users);
-    }
-    const updated = { email: session.email, name: trimmed };
-    setSession(updated);
-    applyUserToUI(updated);
-    alert('Profil yangilandi!');
   }
 
   function requireAuth(){

@@ -154,9 +154,9 @@
   }
 
   // Sana urug'i bilan aralashtirish — har kuni boshqa 15 ta savol (alilm kabi 24 soatda yangilanadi)
-  function dtSeededPick(level){
+  function dtSeededPick(level, salt){
     const today = dtToday();
-    const lvl = String(level || 'B2');
+    const lvl = String(level || 'B2') + '#' + String(salt || 0);
     let seed = 0;
     for(let i = 0; i < today.length; i++){ seed = (seed * 31 + today.charCodeAt(i)) % 2147483647; }
     for(let i = 0; i < lvl.length; i++){ seed = (seed * 31 + lvl.charCodeAt(i) + 17) % 2147483647; }
@@ -276,7 +276,8 @@
     if(!ok) level = 'B2';
     dtState.level = level;
     try { localStorage.setItem(DAILY_LEVEL_KEY, level); } catch(e){}
-    dtStartWithLevel(level);
+    // Qayta kirishda (oldingi natija bor bo'lsa) har safar yangi savollar yaratiladi
+    dtStartWithLevel(level, !!dtState.result);
   }
 
   function startDaily(){
@@ -284,14 +285,16 @@
   }
 
   /* 2b) LOADING EKRANI (aylana progress) */
-  function dtStartWithLevel(level){
+  function dtStartWithLevel(level, forceNew){
     clearInterval(dailyLoadTimer);
     const lvl = level || 'B2';
     dtState.level = lvl;
     dtState.screen = 'loading';
-    // Tanlangan daraja uchun testni AI bir marta yaratadi va kun davomida localStorage'da saqlanadi.
+    dtState.forceNew = !!forceNew;
+    // Birinchi kirishda AI testi kun davomida saqlanadi. Qayta urinishda esa
+    // har safar butunlay yangi 15 ta savol yaratiladi.
     dtState.loadToken = (dtState.loadToken || 0) + 1;
-    const cached = dtGetAiQuestions(lvl);
+    const cached = forceNew ? null : dtGetAiQuestions(lvl);
     dtState.aiPromise = cached
       ? Promise.resolve(cached)
       : aiGenerate('daily', lvl, 60000)
@@ -352,12 +355,12 @@
   async function dtBeginTesting(){
     const state = dtState;
     const token = state.loadToken;
-    let qs = dtGetAiQuestions(state.level);
+    let qs = state.forceNew ? null : dtGetAiQuestions(state.level);
     if(!qs && state.aiPromise){
       try { qs = await state.aiPromise; } catch(e){ qs = null; }
     }
     if(dtState !== state || state.loadToken !== token || state.screen !== 'loading') return;
-    state.questions = (qs && qs.length === DAILY_TOTAL) ? qs : dtSeededPick(state.level);
+    state.questions = (qs && qs.length === DAILY_TOTAL) ? qs : dtSeededPick(state.level, state.forceNew ? state.loadToken : 0);
     state.idx = 0; state.answers = {}; state.correct = 0; state.revealed = false;
     dtUpdateLoad(100);
     await new Promise(function(resolve){ setTimeout(resolve, 350); });

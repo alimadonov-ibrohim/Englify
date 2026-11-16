@@ -1,6 +1,6 @@
 # Englify — Ingliz va Nemis tili markazi
 
-Englify — ingliz va nemis tilini o'rganish uchun sayt: testlar, video diktantlar, listening/reading/speaking/writing mocklar, AI Speaking, Battle Mode, lug'at va admin panel. Sayt HTML qobig'i va bo'limlar bo'yicha ajratilgan CSS/JS fayllardan iborat — internet orqali ishlaydi, o'rnatish shart emas.
+Englify - ingliz va nemis tilini o'rganish uchun sayt: testlar, video diktantlar, listening/reading/speaking/writing mocklar, Battle Mode, lug'at va admin panel. Sayt HTML qobig'i va bo'limlar bo'yicha ajratilgan CSS/JS fayllardan iborat — internet orqali ishlaydi, o'rnatish shart emas.
 
 ## Live
 
@@ -15,8 +15,8 @@ Englify — ingliz va nemis tilini o'rganish uchun sayt: testlar, video diktantl
 | Fayl | Vazifasi |
 | --- | --- |
 | `Englify.html` | Sayt qobig'i: sahifa tuzilishi, bo'limlar konteynerlari va modallar |
-| `assets/css/` | Har bir bo'lim uchun alohida stillar (`base.css`, `home.css`, `writing.css`, `listening.css`, `reading.css`, `speaking.css`, `ai-speaking.css`, `battle.css`, `full-exam.css`, `daily.css`, `videos.css`, `advice.css` va boshqalar) |
-| `assets/js/` | Har bir bo'lim logikasi alohida faylda (`core.js`, `navigation.js`, `writing.js`, `listening.js`, `reading.js`, `speaking.js`, `ai-speaking.js`, `battle.js`, `full-exam.js`, `daily.js`, `videos.js`, `advice.js` va boshqalar) |
+| `assets/css/` | Har bir bo'lim uchun alohida stillar (`base.css`, `home.css`, `writing.css`, `listening.css`, `reading.css`, `speaking.css`, `admin-ai.css`, `battle.css`, `full-exam.css`, `daily.css`, `videos.css`, `advice.css` va boshqalar) |
+| `assets/js/` | Har bir bo'lim logikasi alohida faylda (`core.js`, `navigation.js`, `writing.js`, `listening.js`, `reading.js`, `speaking.js`, `battle.js`, `full-exam.js`, `daily.js`, `videos.js`, `advice.js` va boshqalar) |
 | `assets/js/vendor/qrcode.js` | QR kod generatori (tashqi kutubxona) |
 | `Englify-server.bat` | Windows: mahalliy serverni **bir marta bosish** bilan ishga tushiradi |
 | `englify-server.ps1` | Yuqoridagi .bat ochadigan server skripti (PowerShell) |
@@ -34,7 +34,7 @@ Telefonga o'rnatiladigan APK tayyor:
 
 - `Englify.apk` (loyiha ildizida) yoki `android-apk/dist/Englify.apk`
 - Ichida sayt to'liq, asosiy bo'limlar internet shart emas.
-- Listening Mock, Full Exam va AI Speaking ovozlari native Android TTS bilan tiniq chiqadi.
+- Listening Mock va Full Exam ovozlari native Android TTS bilan tiniq chiqadi.
 - O'rnatish va qayta yig'ish bo'yicha batafsil: `android-apk/README.md`
 - Qayta yig'ish: `android-apk/build-apk.bat` ni ikki marta bosing.
 
@@ -55,7 +55,7 @@ assets/
     listening.css
     reading.css
     speaking.css
-    ai-speaking.css
+    admin-ai.css
     battle.css
     full-exam.css
     nav.css
@@ -65,13 +65,13 @@ assets/
     vendor/qrcode.js
     core.js
     pwa.js
+    profile.js
     navigation.js
     results.js
     writing.js
     listening.js
     reading.js
     speaking.js
-    ai-speaking.js
     advice.js
     battle-setup.js
     videos.js
@@ -111,7 +111,7 @@ Serverni to'xtatish: pastdagi qora "Englify Server" oynasini yoping.
 
 ## AI backend (OpenAI / Gemini)
 
-Barcha test bo'limlari (Daily, Listening, Reading, Writing, Speaking, Full Exam), AI Speaking va **AI bilan maslahat** haqiqiy AI bilan ishlashi uchun kichik backend bor. API kalit **faqat backendda** saqlanadi — brauzerga yoki HTML faylga yozilmaydi.
+Barcha test bo'limlari (Daily, Listening, Reading, Writing, Speaking, Full Exam) va **AI bilan maslahat** haqiqiy AI bilan ishlashi uchun kichik backend bor. API kalit **faqat backendda** saqlanadi - brauzerga yoki HTML faylga yozilmaydi.
 
 ### Sozlash (bir marta)
 
@@ -140,11 +140,26 @@ Barcha test bo'limlari (Daily, Listening, Reading, Writing, Speaking, Full Exam)
 - **Speaking Mock** — har kirishda AI yangi Part 2 cue card yaratadi; javobingiz Gemini tomonidan IELTS mezonlarida baholanadi.
 - **Writing Mock (Avto)** — har safar AI yangi Task 2 mavzusi beradi va esse 4 ta IELTS mezoni bo'yicha baholanadi.
 - **Full Exam** — har kirishda AI butun imtihon variantini (Listening 10 + Reading 10 + Use of English 10 + 4 Writing mavzusi) yaratadi; Writing qismi ham Gemini bilan baholanadi.
-- **AI Speaking** — har bir javobingiz AI'ga yuboriladi; AI fikr-mulohaza beradi va keyingi savolni beradi. Mikrofon uzluksiz rejimda ishlaydi.
+- **Listening audio** — matn `/api/ai/tts` orqali Gemini TTS'da haqiqiy, tabiiy ovozga aylantiriladi (WAV). Backend ishlamasa brauzerning eng yaxshi ingliz ovozi ishlatiladi.
+- **AI Admin** — admin panelning yangi bo'limi: foydalanuvchilar soni, ismlari, bugungi ro'yxat, kurslar, testlar, natijalar, lug'at, bildirishnomalar va loglar haqida savol berish mumkin. Oddiy savollarga aniq (lokal) javob beriladi, murakkablari Gemini'ga yuboriladi. AI **faqat admin panel ma'lumotlari** asosida javob beradi; parollar hech qachon ko'rsatilmaydi.
+- **Admin panel bo'limlari** — Dashboard, AI Admin, Foydalanuvchilar, Kurslar, Testlar, Natijalar, Lug'at, Bildirishnomalar, **Sertifikatlar** (sertifikat berish, kod nusxalash, o'chirish) va **Sozlamalar** (sayt nomi, qo'llab-quvvatlash email, standart daraja, daily savollar soni, e'lon, texnik xizmat rejimi va xavfli zona). Sozlamalar shu brauzerdagi `localStorage`da saqlanadi.
 - **AI bilan maslahat** — Gemini mentor bilan erkin suhbat: grammatika, lug'at, talaffuz, IELTS strategiyalari, o'qish rejasi va tushunmagan mavzular bo'yicha savol berish mumkin. Savol tiliga qarab o'zbek yoki ingliz tilida javob beradi; xatolarni tuzatib, misollar bilan tushuntiradi. Bundan tashqari, topshiriq, daftar yoki xatoni **rasmga olib biriktirish** mumkin — AI rasmni o'qib, o'sha topshiriq bo'yicha yordam beradi (1-3 ta JPG/PNG/WEBP rasm).
 - **Battle Mode** — haqiqiy foydalanuvchilar bilan 1v1 real vaqt jangi (savollar lokal bankdan, javoblar avtomatik tekshiriladi).
 - Kalit yo'q, kvota tugagan yoki backend o'chirilgan bo'lsa, sayt avtomatik **lokal rejimga** qaytadi — hech narsa buzilmaydi.
 - AI holatini tekshirish: `http://127.0.0.1:8000/api/health`
+
+### API endpointlar
+
+| Endpoint | Vazifasi |
+| --- | --- |
+| `GET /api/health` | Backend va AI holati, mavjud endpointlar ro'yxati |
+| `POST /api/ai/generate` | Test/audio matni va savollar generatsiyasi (listening, reading, writing, daily, full-exam) |
+| `POST /api/ai/chat` | AI bilan erkin suhbat (maslahat, rasm bilan) |
+| `POST /api/ai/advice` | Mentor maslahati |
+| `POST /api/ai/score-writing` | Writing natijasini IELTS mezonlarida baholash |
+| `POST /api/ai/score-speaking` | Speaking javobini baholash |
+| `POST /api/ai/admin` | Admin panel ma'lumotlari bo'yicha AI javob (faqat yuborilgan kontekst asosida) |
+| `POST /api/ai/tts` | Matnni Gemini neural ovoziga (WAV, base64) aylantirish |
 
 > Gemini bepul tarifida so'rovlar soni cheklangan. Asosiy model band yoki kvota tugagan bo'lsa, backend `GEMINI_FALLBACK_MODEL` (gemini-3.1-flash-lite) ga avtomatik o'tadi; u ham ishlamasa sayt lokal bankka qaytadi.
 

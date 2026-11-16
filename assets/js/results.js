@@ -7,7 +7,6 @@
     writing:   { completed: false, band: 0, pct: 0, score: '', date: '' },
     speaking:  { completed: false, band: 0, pct: 0, score: '', date: '' },
     daily:     { completed: false, band: 0, pct: 0, score: '', date: '' },
-    aispeaking:{ completed: false, band: 0, pct: 0, score: '', date: '', turns: 0, words: 0, minutes: 0 },
     battle:    { completed: false, band: 0, pct: 0, score: '', date: '', wins: 0, losses: 0, draws: 0 },
     fullexam:  { completed: false, band: 0, pct: 0, score: '', date: '', sections: null, timeUsed: 0 }
   };
@@ -126,13 +125,7 @@
       historyItems.push({type:'⏳ Daily Tests', detail: testProgress.daily.score, score: 'Band ' + testProgress.daily.band + ' (' + testProgress.daily.pct + '%)', date: testProgress.daily.date, key:'daily'});
     }
 
-    // 6. AI Speaking
-    if(testProgress.aispeaking && testProgress.aispeaking.completed){
-      allPcts.push(testProgress.aispeaking.pct);
-      historyItems.push({type:'🤖 AI Speaking', detail: testProgress.aispeaking.score, score: 'Band ' + testProgress.aispeaking.band, date: testProgress.aispeaking.date, key:'aispeaking'});
-    }
-
-    // 7. Battle Mode
+    // 6. Battle Mode
     if(testProgress.battle && testProgress.battle.completed){
       allPcts.push(testProgress.battle.pct);
       historyItems.push({type:'⚔️ Battle Mode', detail: testProgress.battle.score, score: testProgress.battle.pct + '% aniqlik', date: testProgress.battle.date, key:'battle'});
@@ -164,11 +157,10 @@
 
     // Haqiqiy o'qish vaqti
     let realMinutes = 0;
-    ['listening','reading','writing','speaking','daily','aispeaking','battle','fullexam'].forEach(function(k){
+    ['listening','reading','writing','speaking','daily','battle','fullexam'].forEach(function(k){
       const t = testProgress[k];
       if(!t || !t.completed) return;
       if(k === 'fullexam' && t.timeUsed) realMinutes += t.timeUsed;
-      else if(k === 'aispeaking' && t.minutes) realMinutes += t.minutes;
       else if(k === 'listening') realMinutes += 5;
       else if(k === 'reading') realMinutes += 6;
       else if(k === 'writing') realMinutes += 30;
@@ -271,7 +263,7 @@
   // Ketma-ket kunlar (streak) hisoblash — history dagi testlar sanalari bo'yicha
   function computeStreakDays(){
     const dates = [];
-    ['listening','reading','writing','speaking','daily','aispeaking','battle','fullexam'].forEach(function(k){
+    ['listening','reading','writing','speaking','daily','battle','fullexam'].forEach(function(k){
       const t = testProgress[k];
       if(t && t.completed && t.date) dates.push(t.date);
     });
@@ -301,7 +293,6 @@
     else if(key === 'listening') openListening();
     else if(key === 'reading') openReading();
     else if(key === 'speaking') openSpeaking();
-    else if(key === 'aispeaking') openAISpeaking();
     else if(key === 'battle') openBattle();
     else if(key === 'fullexam') openFullExam();
     else if(key === 'videos') openVideos();
@@ -317,7 +308,6 @@
       writing:   { completed: true, band: 6.5, pct: 72, score: 'Band 6.5 (270 so\'z)', date: new Date().toISOString().split('T')[0] },
       speaking:  { completed: true, band: 7.0, pct: 78, score: 'Band 7.0 (120 so\'z)', date: new Date().toISOString().split('T')[0] },
       daily:     { completed: true, band: 8.0, pct: 100, score: '15/15 to\'g\'ri', date: new Date().toISOString().split('T')[0] },
-      aispeaking:{ completed: false, band: 0, pct: 0, score: '', date: '', turns: 0, words: 0, minutes: 0 },
       battle:    { completed: false, band: 0, pct: 0, score: '', date: '', wins: 0, losses: 0, draws: 0 },
       fullexam:  { completed: false, band: 0, pct: 0, score: '', date: '', sections: null, timeUsed: 0 }
     };
@@ -336,7 +326,6 @@
         writing:   { completed: false, band: 0, pct: 0, score: '', date: '' },
         speaking:  { completed: false, band: 0, pct: 0, score: '', date: '' },
         daily:     { completed: false, band: 0, pct: 0, score: '', date: '' },
-        aispeaking:{ completed: false, band: 0, pct: 0, score: '', date: '', turns: 0, words: 0, minutes: 0 },
         battle:    { completed: false, band: 0, pct: 0, score: '', date: '', wins: 0, losses: 0, draws: 0 },
         fullexam:  { completed: false, band: 0, pct: 0, score: '', date: '', sections: null, timeUsed: 0 }
       };

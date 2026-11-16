@@ -92,3 +92,88 @@
     .pwa-install-banner{max-width:calc(100vw - 32px);}
   }
 
+  /* === Profil: ixcham APK holati === */
+  .apk-dl-action{font-size:12px;font-weight:700;color:var(--blue-deep);white-space:nowrap;}
+  .prof-menu-left small.apk-status{display:block;font-size:12.5px;color:var(--ink-soft);margin-top:2px;min-height:0;opacity:1;}
+  .prof-menu-left small.apk-status.ok{color:#22c55e;}
+  .prof-menu-left small.apk-status.err{color:#ef4444;}
+
+  /* === Profil: modal oynalar === */
+  .prof-modal{position:fixed;inset:0;background:rgba(0,0,0,.74);backdrop-filter:blur(6px);z-index:10050;display:flex;align-items:center;justify-content:center;padding:18px;overflow-y:auto;}
+  .prof-modal-box{background:var(--card);border:1px solid var(--line);border-radius:18px;width:100%;max-width:460px;max-height:calc(100vh - 36px);overflow-y:auto;padding:24px;position:relative;box-shadow:0 24px 60px -12px rgba(0,0,0,.65);animation:profPop .18s ease;}
+  @keyframes profPop{from{opacity:0;transform:translateY(10px) scale(.98);}to{opacity:1;transform:none;}}
+  .prof-modal-close{position:absolute;top:12px;right:14px;background:none;border:none;font-size:24px;line-height:1;color:var(--ink-soft);cursor:pointer;font-family:'Manrope',sans-serif;padding:0;}
+  .prof-modal-close:hover{color:var(--ink);}
+  .prof-modal-title{font-family:'Fraunces',serif;font-size:20px;font-weight:600;margin:0 0 18px;padding-right:28px;color:var(--ink);}
+  .prof-modal-body{color:var(--ink);font-size:14px;}
+  .prof-modal-foot{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;flex-wrap:wrap;}
+
+  /* === Profil: tahrirlash formasi === */
+  .prof-field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+  .prof-field label{font-size:12.5px;font-weight:700;color:var(--ink-soft);}
+  .prof-input{padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:var(--field);color:var(--ink);font-size:14px;font-family:'Manrope',sans-serif;outline:none;transition:border-color .15s;}
+  .prof-input:focus{border-color:var(--blue-deep);}
+  .prof-hint{font-size:11.5px;color:var(--ink-soft);}
+  .prof-error{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.4);color:#fca5a5;border-radius:10px;padding:10px 12px;font-size:12.5px;line-height:1.5;}
+
+  /* === Profil: bildirishnomalar === */
+  .prof-notif-list{display:flex;flex-direction:column;gap:10px;max-height:52vh;overflow-y:auto;padding-right:2px;}
+  .prof-notif-item{display:flex;gap:12px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--field);}
+  .prof-notif-icon{width:34px;height:34px;border-radius:10px;background:var(--blue-tint);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+  .prof-notif-main{min-width:0;}
+  .prof-notif-title{font-weight:700;font-size:14px;color:var(--ink);}
+  .prof-notif-msg{font-size:13px;color:var(--ink-soft);margin-top:3px;line-height:1.5;word-break:break-word;}
+  .prof-notif-date{font-size:11px;color:var(--ink-soft);margin-top:6px;opacity:.8;}
+
+  /* === Profil: bo'sh holat === */
+  .prof-empty{text-align:center;padding:26px 10px;}
+  .prof-empty-icon{font-size:34px;margin-bottom:8px;}
+  .prof-empty-title{font-weight:700;font-size:15px;color:var(--ink);}
+  .prof-empty-sub{font-size:12.5px;color:var(--ink-soft);margin-top:4px;line-height:1.5;}
+
+  /* === Profil: til tanlash === */
+  .prof-lang-list{display:flex;flex-direction:column;gap:8px;}
+  .prof-lang-opt{display:flex;align-items:center;gap:12px;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:var(--field);color:var(--ink);cursor:pointer;font-family:'Manrope',sans-serif;font-size:14px;font-weight:600;transition:all .15s;}
+  .prof-lang-opt:hover{border-color:var(--blue-deep);}
+  .prof-lang-opt.active{border-color:var(--blue-deep);background:var(--blue-tint);color:var(--blue-deep);}
+  .prof-lang-flag{font-size:20px;}
+  .prof-lang-name{flex:1;text-align:left;}
+  .prof-lang-check{color:var(--blue-deep);font-weight:800;}
+
+  /* === Profil: qo'llanma / yordam / maxfiylik === */
+  .prof-doc p{font-size:13.5px;line-height:1.65;color:var(--ink-soft);margin-bottom:12px;}
+  .prof-doc-list{margin:0 0 12px 18px;display:flex;flex-direction:column;gap:8px;font-size:13.5px;line-height:1.55;color:var(--ink-soft);}
+  .prof-doc-list b{color:var(--ink);}
+  .prof-doc-sub{font-size:11.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft);margin:16px 0 8px;}
+  .prof-tip{background:var(--blue-tint);border:1px solid var(--line);border-radius:10px;padding:11px 13px;font-size:12.5px;line-height:1.55;color:var(--ink);margin-top:12px;}
+  .prof-contact-list{display:flex;flex-direction:column;gap:8px;margin:12px 0;}
+  .prof-contact{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--field);text-decoration:none;color:var(--ink);transition:border-color .15s;}
+  .prof-contact:hover{border-color:var(--blue-deep);}
+  .prof-contact-ic{font-size:20px;flex-shrink:0;}
+  .prof-contact b{display:block;font-size:13.5px;}
+  .prof-contact small{display:block;font-size:12px;color:var(--ink-soft);margin-top:2px;word-break:break-all;}
+  .prof-faq{padding:10px 0;border-bottom:1px dashed var(--line);font-size:13px;line-height:1.55;}
+  .prof-faq:last-child{border-bottom:none;}
+  .prof-faq b{display:block;margin-bottom:2px;color:var(--ink);}
+  .prof-faq p{font-size:12.5px;color:var(--ink-soft);margin:0;}
+
+  /* === Profil: reyting === */
+  .prof-rating-top{display:flex;align-items:center;gap:16px;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--field);margin-bottom:16px;}
+  .prof-rating-avg{font-family:'Fraunces',serif;font-size:38px;font-weight:600;color:var(--blue-deep);line-height:1;}
+  .prof-rating-label{font-size:13px;font-weight:700;color:var(--ink);}
+  .prof-rating-sub{font-size:12px;color:var(--ink-soft);margin-top:3px;}
+  .prof-rating-list{display:flex;flex-direction:column;gap:12px;}
+  .prof-rating-row{display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center;}
+  .prof-rating-name{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;color:var(--ink);}
+  .prof-rating-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+  .prof-rating-band{font-size:12.5px;font-weight:800;color:var(--blue-deep);}
+  .prof-rating-lock{font-size:11.5px;color:var(--ink-soft);}
+  .prof-rating-bar{grid-column:1 / -1;height:6px;border-radius:100px;background:var(--line);overflow:hidden;}
+  .prof-rating-bar span{display:block;height:100%;border-radius:100px;transition:width .4s ease;}
+
+  /* === Profil: toast === */
+  .prof-toast{position:fixed;left:50%;bottom:92px;transform:translate(-50%,14px);background:#111;border:1px solid var(--line);color:var(--ink);padding:11px 18px;border-radius:12px;font-size:13px;font-weight:600;z-index:10100;opacity:0;transition:all .25s ease;box-shadow:0 12px 30px -8px rgba(0,0,0,.6);max-width:calc(100vw - 32px);text-align:center;}
+  .prof-toast.show{opacity:1;transform:translate(-50%,0);}
+  .prof-toast.ok{border-color:rgba(34,197,94,.5);}
+  .prof-toast.err{border-color:rgba(239,68,68,.55);}
+

@@ -87,6 +87,7 @@
     try { if(typeof aisLoadTimer !== 'undefined') clearInterval(aisLoadTimer); } catch(e){}
     try { if(typeof aisRecTimer !== 'undefined') clearInterval(aisRecTimer); } catch(e){}
     try { sbTtsStop(); } catch(e){}
+    try { if(typeof sbStudioStop === 'function') sbStudioStop(); } catch(e){}
     try { if(typeof aisRecognition !== 'undefined' && aisRecognition) aisRecognition.abort(); } catch(e){}
     try { if(typeof btlLoadTimer !== 'undefined') clearInterval(btlLoadTimer); } catch(e){}
     try { if(typeof btlQTimer !== 'undefined') clearInterval(btlQTimer); } catch(e){}
@@ -102,12 +103,17 @@
     try { if(typeof dailyLoadTimer !== 'undefined') clearInterval(dailyLoadTimer); } catch(e){}
     try { if(typeof listeningQTimer !== 'undefined') clearInterval(listeningQTimer); } catch(e){}
     try { if(typeof listeningLoadTimer !== 'undefined') clearInterval(listeningLoadTimer); } catch(e){}
+    try { if(typeof listeningProgTimer !== 'undefined') clearInterval(listeningProgTimer); } catch(e){}
     try { if(typeof readingQTimer !== 'undefined') clearInterval(readingQTimer); } catch(e){}
     try { if(typeof readingLoadTimer !== 'undefined') clearInterval(readingLoadTimer); } catch(e){}
 
     if(tabId === 'results') updateResultsDisplay();
     if(tabId === 'vocab') renderVocabCards();
-    if(tabId === 'profile') updateCertificateAvailability();
+    if(tabId === 'profile'){
+      updateCertificateAvailability();
+      if(typeof renderCertificates === 'function') renderCertificates();
+      if(typeof updateNotifBadge === 'function') updateNotifBadge();
+    }
     if(tabId === 'videos' && typeof openVideos === 'function') openVideos();
   }
 

@@ -20,7 +20,7 @@ APK ichida sayt to'liq (HTML, CSS, JS, rasmlar) bor. Ilova internetga ulanmasa h
 ## Nima ishlaydi
 
 - Testlar, Reading Mock (10 savol), Daily, Vocabulary, Listening, Writing, Full Exam va boshqa lokal bo'limlar.
-- Listening Mock, Full Exam va AI Speaking ovozlari native Android TTS bilan tiniq chiqadi.
+- Listening Mock va Full Exam ovozlari native Android TTS bilan tiniq chiqadi.
 - Natijalar va sozlamalar telefonda `localStorage`da saqlanadi.
 - Internet shart emas. Faqat tashqi Google Fonts va QR kod xizmati internetni talab qilishi mumkin.
 
@@ -32,7 +32,7 @@ APK ichida sayt to'liq (HTML, CSS, JS, rasmlar) bor. Ilova internetga ulanmasa h
 
 ## AI funksiyalari haqida
 
-- "Maslahat", AI Speaking va AI Writing kabi funksiyalar kompyuterdagi AI backend'ga (`http://127.0.0.1:8000`) murojaat qiladi.
+- "Maslahat" va AI Writing kabi funksiyalar kompyuterdagi AI backend'ga (`http://127.0.0.1:8000`) murojaat qiladi.
 - APK ichida Node.js yoki Gemini backend yo'q. Shuning uchun telefonda bu bo'limlar AI javobisiz qolishi va ogohlantirish ko'rsatishi mumkin.
 - AI'ni telefonda ishlatish uchun backend kompyuterda ishga tushirilib, telefon va kompyuter bitta Wi-Fi tarmog'iga ulanishi kerak. Buni keyingi bosqichda sozlash mumkin.
 

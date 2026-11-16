@@ -5,7 +5,6 @@
     speaking: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0"/><path d="M12 17.5V21M9 21h6"/></svg>',
     reading: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.4C10.4 5.1 8.2 4.5 4.5 4.5v13c3.7 0 5.9.6 7.5 1.9 1.6-1.3 3.8-1.9 7.5-1.9v-13c-3.7 0-5.9.6-7.5 1.9z"/><path d="M12 6.4v13"/></svg>',
     listening: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14v-1.5a8 8 0 0 1 16 0V14"/><rect x="2.5" y="13.5" width="4" height="6.5" rx="2"/><rect x="17.5" y="13.5" width="4" height="6.5" rx="2"/></svg>',
-    aispeaking: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3.5 12.7 8 17 9.7 12.7 11.4 11 16l-1.7-4.6L5 9.7 9.3 8 11 3.5z"/><path d="M18 14.5l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9.9-2.1z"/></svg>',
     battle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H10L9 22l8.5-11.5H12L13 2z"/></svg>',
     fullexam: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 2.5 8.5 12 13l9.5-4.5L12 4z"/><path d="M6 10.5v4.8c0 1.7 2.7 3.2 6 3.2s6-1.5 6-3.2v-4.8"/><path d="M21.5 8.5v5"/></svg>',
     videos: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.52.85l10-6.5a1 1 0 0 0 0-1.7l-10-6.5A1 1 0 0 0 8 5.5z"/></svg>',
@@ -27,7 +26,6 @@
         {key:'speaking', ic: RECENT_ICONS.speaking, bg:'linear-gradient(180deg,#ff6259,#dc2626)', name:'Speaking Mock'},
         {key:'reading', ic: RECENT_ICONS.reading, bg:'linear-gradient(180deg,#3cc3d6,#0d9488)', name:'Reading Mock'},
         {key:'listening', ic: RECENT_ICONS.listening, bg:'linear-gradient(180deg,#7b78f2,#4f46e5)', name:'Listening Mock'},
-        {key:'aispeaking', ic: RECENT_ICONS.aispeaking, bg:'linear-gradient(180deg,#4f8ef7,#2563eb)', name:'AI Speaking', isDone:true},
         {key:'battle', ic: RECENT_ICONS.battle, bg:'linear-gradient(180deg,#ff6259,#b91c1c)', name:'Battle Mode'},
         {key:'fullexam', ic: RECENT_ICONS.fullexam, bg:'linear-gradient(180deg,#2f6fd6,#0e2a5c)', name:'Full Exam'},
         {key:'videos', ic: RECENT_ICONS.videos, bg:'linear-gradient(180deg,#5b8def,#2563eb)', name:'Vidiolar'}
@@ -123,7 +121,6 @@
     if(testProgress.writing && testProgress.writing.completed) xp += Math.round((testProgress.writing.pct || 0) / 10) + 15;
     if(testProgress.speaking && testProgress.speaking.completed) xp += Math.round((testProgress.speaking.pct || 0) / 10) + 15;
     if(testProgress.daily && testProgress.daily.completed) xp += Math.round((testProgress.daily.pct || 0) / 10) + 5;
-    if(testProgress.aispeaking && testProgress.aispeaking.completed) xp += Math.round((testProgress.aispeaking.pct || 0) / 10) + 10;
     if(testProgress.battle && testProgress.battle.completed) xp += Math.round((testProgress.battle.pct || 0) / 10) + 10;
     if(testProgress.fullexam && testProgress.fullexam.completed) xp += Math.round((testProgress.fullexam.pct || 0) / 5) + 30;
     if(testProgress.videos && testProgress.videos.count) xp += testProgress.videos.count * 5;
