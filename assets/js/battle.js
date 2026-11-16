@@ -1,6 +1,7 @@
 // Englify — battle
   // Battle Mode — rejim tanlash (eski btlRenderIntro)
   function btlShowModes(){
+    btlNetClose();
     btlState.screen = 'modes';
     document.getElementById('battle-content').innerHTML = `
       <div class="btlm-wrap">
@@ -195,16 +196,17 @@
     btlState.questions = (Array.isArray(m.questions) && m.questions.length) ? m.questions : sbPickMany(BTL_QBANK, btlState.total);
     btlShowFound(btlState.bot);
   }
-  function btlShowFound(opp){
+  function btlShowFound(opp, simulated){
     btlClearLobbyTimers();
     if(btlNet.waitTimer){ clearTimeout(btlNet.waitTimer); btlNet.waitTimer = null; }
     const spin = document.getElementById('btlm-spin');
     const st = document.getElementById('btlm-search-t');
     const statusEl = document.getElementById('btlm-status');
     if(spin) spin.style.display = 'none';
-    if(st){ st.style.color = '#5eead4'; st.textContent = 'Raqib topildi ✓'; }
+    if(st){ st.style.color = '#5eead4'; st.textContent = simulated ? 'Tasodifiy raqib topildi ✓' : 'Raqib topildi ✓'; }
     if(statusEl) statusEl.innerHTML = '<span>Jang boshlanmoqda</span><span class="btlm-countdown" id="btlm-cd">3</span>';
     btlMatchJoin({ name:opp.name, ic:opp.ic, rating:opp.rating }, 'r', true);
+    if(st){ st.style.color = '#5eead4'; st.textContent = simulated ? 'Tasodifiy raqib topildi ✓' : 'Raqib topildi ✓'; }
     let n = 3;
     const iv = setInterval(function(){
       const el = document.getElementById('btlm-cd');
@@ -267,17 +269,17 @@
       <div class="btlm-wrap">
         <div class="btlm-head">
           <div>
-            <div class="btlm-title-row"><span class="btlm-swords">🎲</span><h2 class="btlm-title">Random jang</h2></div>
-            <p class="btlm-sub">Haqiqiy foydalanuvchi bilan 1 vs 1 onlayn jang</p>
+            <div class="btlm-title-row"><span class="btlm-swords">🎲</span><h2 class="btlm-title">Tasodifiy jang</h2></div>
+            <p class="btlm-sub">Battle Mode'ga kirgan ikki foydalanuvchi avtomatik raqib bo'ladi</p>
           </div>
           <button class="btlm-close" onclick="battleBack()" aria-label="Yopish">✕</button>
         </div>
-        <div class="btlm-fmt-row">
-          <button class="btlm-fmt active" id="btlm-fmt-1v1">1 vs 1 — REAL</button>
+        <div class="btlm-fmt-row" style="grid-template-columns:1fr;">
+          <button class="btlm-fmt active" id="btlm-fmt-1v1">1 vs 1 — AVTOMATIK</button>
         </div>
         <div class="btlm-search">
           <div class="btlm-spin" id="btlm-spin"></div>
-          <div class="btlm-search-t" id="btlm-search-t">Ikkinchi o'yinchi qidirilmoqda</div>
+          <div class="btlm-search-t" id="btlm-search-t">Tasodifiy raqib qidirilmoqda</div>
           <div class="btlm-search-s"><span class="live">●</span> Onlayn: <span id="btlm-online">0</span> foydalanuvchi</div>
         </div>
         <div class="btlm-teams">
@@ -290,8 +292,9 @@
             <div class="btlm-team-col" id="btlm-team-r"></div>
           </div>
         </div>
-        <div class="btlm-status" id="btlm-status"><span>Real o'yinchi qidiruv aktiv</span><span class="dots"></span></div>
-        <p style="font-size:12px;color:var(--ink-soft);text-align:center;margin-top:12px;line-height:1.6;">Ikkinchi o'yinchi uchun saytni boshqa oynada oching: <b>http://127.0.0.1:8138</b></p>
+        <div class="btlm-status" id="btlm-status"><span>Tasodifiy raqib izlanmoqda</span><span class="dots"></span></div>
+        <p style="font-size:12px;color:rgba(255,255,255,.5);text-align:center;margin:10px 0 0;line-height:1.6;">Ikki o'yinchi bir vaqtda shu bo'limga kirsa — haqiqiy 1 vs 1 boshlanadi.<br>Raqib topilmasa, tasodifiy o'yinchi bilan jang avtomatik boshlanadi.</p>
+        <button class="btlm-alt-btn" onclick="btlModeDost()">👥 Do'st bilan o'ynash</button>
       </div>`;
     btlBeginSearch();
   }
@@ -319,8 +322,8 @@
     if(l) l.innerHTML = `<div class="btlm-player"><div class="btlm-player-av">🙂</div><div class="btlm-player-name">Siz</div><div class="btlm-player-rate">⭐ ${btlMyRating()}</div><div class="btlm-player-tag">tayyor</div></div>`;
     if(r) r.innerHTML = '';
     if(spin) spin.style.display = 'flex';
-    if(st){ st.style.color = '#fff'; st.textContent = "Ikkinchi o'yinchi qidirilmoqda..."; }
-    if(statusEl) statusEl.innerHTML = '<span>Real o\'yinchi qidiruv aktiv</span><span class="dots"></span>';
+    if(st){ st.style.color = '#fff'; st.textContent = 'Tasodifiy raqib qidirilmoqda...'; }
+    if(statusEl) statusEl.innerHTML = '<span>Tasodifiy raqib izlanmoqda</span><span class="dots"></span>';
     // Haqiqiy matchmaking — boshqa oyna/tabdagi foydalanuvchilar bilan
     btlNetInit();
     btlNet.searching = true;
@@ -328,19 +331,34 @@
     btlUpdateOnline();
     btlNetAnnounce();
     if(!btlNet.ch && statusEl){
-      statusEl.innerHTML = '<span>Bu brauzerda real matchmaking mavjud emas — Chrome/Edge ishlatib, saytni http://127.0.0.1:8138 orqali oching</span>';
+      statusEl.innerHTML = '<span>Bu brauzerda real matchmaking mavjud emas — tasodifiy raqib tayyorlanmoqda</span>';
     } else if(location.protocol === 'file:' && statusEl){
-      statusEl.innerHTML = '<span>Real jang uchun saytni server orqali oching: http://127.0.0.1:8138</span>';
+      statusEl.innerHTML = '<span>Real jang uchun saytni server orqali oching — hozir tasodifiy raqib tanlanadi</span>';
     }
-    btlNet.waitTimer = setTimeout(function(){
-      if(btlState.screen !== 'match' || !btlNet.searching) return;
-      const st2 = document.getElementById('btlm-search-t');
-      const sp2 = document.getElementById('btlm-spin');
-      if(st2){ st2.style.color = '#fde68a'; st2.textContent = 'Hozircha real raqib topilmadi'; }
-      if(sp2) sp2.style.display = 'none';
-      const se = document.getElementById('btlm-status');
-      if(se) se.innerHTML = '<span>Saytni ikkinchi oynada ochib, qayta urinib ko\'ring</span>';
-    }, 12000);
+    // 6 soniya ichida haqiqiy raqib topilmasa — tasodifiy o'yinchi bilan boshlaymiz.
+    btlNet.waitTimer = setTimeout(btlFallbackMatch, 6000);
+  }
+
+  /* Haqiqiy raqib topilmaganda tasodifiy o'yinchi bilan jangni boshlash.
+     Shu tufayli foydalanuvchi hech qachon "qidiruvda qotib" qolmaydi. */
+  function btlFallbackMatch(){
+    if(btlState.screen !== 'match' || !btlNet.searching) return;
+    btlNet.searching = false;
+    if(btlNet.waitTimer){ clearTimeout(btlNet.waitTimer); btlNet.waitTimer = null; }
+    const st = document.getElementById('btlm-search-t');
+    if(st){ st.style.color = '#fde68a'; st.textContent = 'Onlayn raqib topilmadi — tasodifiy raqib tanlanmoqda'; }
+    const statusEl = document.getElementById('btlm-status');
+    if(statusEl) statusEl.innerHTML = '<span>Tasodifiy o\'yinchi bilan jang boshlanmoqda</span><span class="dots"></span>';
+    // Endi haqiqiy matchmaking shart emas — kanal va presence'ni yopamiz.
+    btlNetClose();
+    const pool = BTL_USERS.filter(function(u){ return u.name !== btlMyName(); });
+    const pick = (pool.length ? pool : BTL_USERS)[Math.floor(Math.random() * (pool.length ? pool.length : BTL_USERS.length))];
+    const opp = btlSimUser(pick);
+    btlState.realMatch = false;
+    btlState.bot = opp;
+    btlState.opponents = [opp];
+    btlState.questions = sbPickMany(BTL_QBANK, btlState.total);
+    btlShowFound(opp, true);
   }
 
   function btlMatchJoin(m, side, first){
@@ -400,6 +418,9 @@
 
   // 👥 Do'st — xona kodi bilan do'stlik jangi
   function btlModeDost(){
+    // Tasodifiy qidiruvni butunlay to'xtatamiz — aks holda do'st xonasida
+    // turganimizda boshqa o'yinchi bizni raqib sifatida "tortib" olishi mumkin.
+    btlNetClose();
     btlClearLobbyTimers();
     btlState.screen = 'room';
     btlState.lobbyStarted = false;

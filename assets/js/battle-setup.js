@@ -87,5 +87,7 @@
       realMatch: false, advancing: false, netQueue: {}
     };
     showPanel('battle', 'Battle Mode');
-    btlRenderIntro();
+    // Bo'limga kirilishi bilan tasodifiy raqib qidiruvi avtomatik boshlanadi.
+    // Ikki foydalanuvchi bir vaqtda kirsa — ular haqiqiy 1v1 raqib bo'ladi.
+    btlModeRandom();
   }

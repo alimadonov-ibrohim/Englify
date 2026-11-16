@@ -129,6 +129,8 @@
   .btlm-player-tag.host{color:#fdba74;}
   .btlm-status{display:flex;align-items:center;justify-content:center;gap:9px;font-size:13px;color:rgba(255,255,255,.65);min-height:46px;font-family:'Manrope',sans-serif;}
   .btlm-status .dots::after{content:'';animation:btlmDots 1.2s steps(1) infinite;}
+  .btlm-alt-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:11px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;font-family:'Manrope',sans-serif;transition:all .15s;}
+  .btlm-alt-btn:hover{background:rgba(255,255,255,.16);}
   @keyframes btlmDots{0%{content:'';}25%{content:'.';}50%{content:'..';}75%{content:'...';}}
   .btlm-countdown{display:inline-flex;align-items:center;justify-content:center;min-width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#ef4444,#991b1b);color:#fff;font-size:18px;font-weight:800;font-family:'Manrope',sans-serif;box-shadow:0 8px 18px -6px rgba(239,68,68,.6);}
   .btlm-cd-anim{animation:btlmCd .8s ease;}

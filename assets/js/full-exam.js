@@ -589,6 +589,7 @@
 
 
   function btlRenderIntro(){
+    btlNetClose();
     btlState.screen = 'intro';
     const heroSvg = '<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5L3 6V3h3l11.5 11.5"/><path d="M13 19l6-6"/><path d="M16 16l4 4"/><path d="M19 21l2-2"/></svg>';
     const clockSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
@@ -598,22 +599,22 @@
       colorClass: 'al-crimson',
       heroSvg: heroSvg,
       title: 'Battle Mode',
-      sub: 'Onlayn foydalanuvchilar bilan 1v1 · 2v2 · 4v4 jamoaviy bilim jangi — tezlik va aniqlik',
+      sub: 'Battle Mode\'ga kirgan ikki foydalanuvchi avtomatik 1v1 raqib bo\'ladi — tezlik va aniqlik jangi',
       chips: [
         { svg: qSvg, text: '7 savol' },
         { svg: clockSvg, text: '15s/savol' },
-        { svg: teamSvg, text: '1v1 · 2v2 · 4v4' }
+        { svg: teamSvg, text: 'Avtomatik 1v1' }
       ],
       howtoHead: 'QANDAY ISHLATISH?',
       steps: [
-        { txt: '<b>Random</b> (onlayn matchmaking) yoki <b>Do\'st</b> (kod bilan) tanlang' },
+        { txt: 'Bo\'limga kiring — <b>tasodifiy raqib</b> avtomatik qidiriladi' },
+        { txt: 'Ikki foydalanuvchi bir vaqtda kirsa — <b>haqiqiy 1 vs 1</b> boshlanadi' },
         { txt: 'Har savolga <b>15 soniya</b> — tez javob = ko\'proq ball' },
-        { txt: '<b>3+ to\'g\'ri ketma-ket</b> = seriya bonusi (+5 ball)' },
-        { txt: 'G\'alaba/mag\'lubiyat rekordi <b>Natijalar</b> bo\'limida saqlanadi' }
+        { txt: '<b>3+ to\'g\'ri ketma-ket</b> = seriya bonusi (+5 ball)' }
       ],
       note: 'Jangda faqat haqiqiy javoblar hisoblanadi — javob bermasangiz +0 ball va seriya buziladi',
       btnText: 'Boshlash',
-      btnAction: 'btlShowModes()',
+      btnAction: 'btlModeRandom()',
       motivate: 'Tezlik va aniqlik — g\'alaba kaliti! ⚔️'
     });
   }
