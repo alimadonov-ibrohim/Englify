@@ -1,7 +1,5 @@
 // Englify — advice
   // --- AI BILAN MASLAHAT (Gemini mentor) ---
-  const ADVICE_WELCOME = "Salom! Men Englify AI maslahatchisiman. 👋\n\nGrammatika, lug'at, talaffuz, IELTS (Listening, Reading, Writing, Speaking), o'qish rejasi yoki tushunmagan mavzularingiz bo'yicha savol bering. O'zbek yoki ingliz tilida yozishingiz mumkin — javobni shu tilda beraman.";
-
   const ADVICE_SUGGESTIONS = [
     "Present Perfect qachon ishlatiladi?",
     "IELTS Writing 7.0 uchun qanday yozish kerak?",
@@ -34,7 +32,7 @@
 
   function adviceReset(){
     adviceState.seq++;
-    adviceState.messages = [{ role: 'ai', text: ADVICE_WELCOME }];
+    adviceState.messages = [];
     adviceState.busy = false;
     adviceState.started = false;
     adviceState.attachments = [];
@@ -46,6 +44,8 @@
     const el = document.getElementById('advice-content');
     if(!el) return;
 
+    const hasMessages = adviceState.messages.length > 0;
+
     const bubbles = adviceState.messages.map(function(m){
       const isUser = m.role === 'user';
       const pics = (Array.isArray(m.images) && m.images.length)
@@ -54,19 +54,26 @@
           }).join('') + '</div>'
         : '';
       return '<div class="adv-msg ' + (isUser ? 'user' : 'ai') + '">' +
-        '<div class="adv-av">' + (isUser ? '🧑' : '🤖') + '</div>' +
         '<div class="adv-bubble' + (m.error ? ' err' : '') + '">' + adviceFormat(m.text) + pics + '</div>' +
         '</div>';
     }).join('');
 
     const typing = adviceState.busy
-      ? '<div class="adv-msg ai"><div class="adv-av">🤖</div><div class="adv-typing"><i></i><i></i><i></i></div></div>'
+      ? '<div class="adv-msg ai"><div class="adv-typing"><i></i><i></i><i></i></div></div>'
       : '';
 
-    const suggestions = !adviceState.started
-      ? '<div class="adv-suggest">' + ADVICE_SUGGESTIONS.map(function(q){
-          return '<button type="button" data-prompt="' + escapeHtml(q) + '" onclick="adviceSendSuggestion(this.dataset.prompt)">' + escapeHtml(q) + '</button>';
-        }).join('') + '</div>'
+    const suggestions = ADVICE_SUGGESTIONS.map(function(q){
+      return '<button type="button" data-prompt="' + escapeHtml(q) + '" onclick="adviceSendSuggestion(this.dataset.prompt)">' +
+        '<span>' + escapeHtml(q) + '</span><em aria-hidden="true">→</em></button>';
+    }).join('');
+
+    const hero = !hasMessages && !adviceState.busy
+      ? '<div class="adv-hero">' +
+          '<div class="adv-orb">✦</div>' +
+          '<h3>Qanday yordam kerak?</h3>' +
+          '<p>Grammatika, IELTS yoki talaffuz bo‘yicha savolingizni yozing — yoki tayyor savollardan birini tanlang.</p>' +
+          '<div class="adv-suggest">' + suggestions + '</div>' +
+        '</div>'
       : '';
 
     const attachPreview = adviceState.attachments.length
@@ -90,39 +97,43 @@
       return '';
     })();
 
+    const newChatBtn = hasMessages
+      ? '<button type="button" class="adv-new" onclick="adviceNewChat()" title="Yangi suhbat" aria-label="Yangi suhbat">' +
+          '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>' +
+        '</button>'
+      : '';
+
     el.innerHTML = `
       <div class="adv-wrap">
         ${healthBanner}
-        <div class="adv-chat">
-          <div class="adv-chat-top">
-            <div class="adv-chat-title">
-              <div class="adv-chat-icon">🤖</div>
-              <div><b>Englify AI Mentor</b><span>IELTS va ingliz tili bo'yicha shaxsiy ustoz</span></div>
-            </div>
-            <button type="button" class="adv-new" onclick="adviceNewChat()">＋ Yangi suhbat</button>
+        <div class="adv-head">
+          <div class="adv-brand">
+            <span class="adv-orb">✦</span>
+            <div class="adv-brand-t"><b>AI Mentor</b><span><i></i>Onlayn</span></div>
           </div>
+          ${newChatBtn}
+        </div>
 
-          <div class="adv-messages" id="advice-message-box">
-            ${bubbles}${typing}
-          </div>
-          ${suggestions}
-          ${attachPreview}
+        <div class="adv-messages${hero ? ' is-empty' : ''}" id="advice-message-box">
+          ${hero}${bubbles}${typing}
+        </div>
+        ${attachPreview}
 
-          <div class="adv-composer">
-            <input type="file" id="advice-file" accept="image/*" multiple
-              style="display:none" onchange="advicePickImages(this)">
-            <button type="button" class="adv-attach" onclick="document.getElementById('advice-file').click()"
-              title="Rasm biriktirish" aria-label="Rasm biriktirish" ${adviceState.busy ? 'disabled' : ''}>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-            </button>
-            <textarea id="advice-input" class="adv-input" rows="1" maxlength="4000"
-              placeholder="${adviceState.busy ? 'AI javob yozmoqda...' : 'Savolingizni yozing yoki rasm biriktiring... (Enter — yuborish)'}"
-              oninput="adviceDraftInput(this)" onkeydown="adviceInputKey(event)"
-              ${adviceState.busy ? 'disabled' : ''}>${escapeHtml(adviceState.draft)}</textarea>
-            <button type="button" class="adv-send" id="advice-send" onclick="adviceSend()"
-              title="Yuborish" ${adviceState.busy ? 'disabled' : ''}>➤</button>
-          </div>
-          <div class="adv-note">💡 <span><b>Rasm biriktiring:</b> topshiriq, xato yoki daftaringizni suratga olib yuboring. AI xato qilishi mumkin — muhim faktlarni tekshiring.</span></div>
+        <div class="adv-composer">
+          <input type="file" id="advice-file" accept="image/*" multiple
+            style="display:none" onchange="advicePickImages(this)">
+          <button type="button" class="adv-attach" onclick="document.getElementById('advice-file').click()"
+            title="Rasm biriktirish" aria-label="Rasm biriktirish" ${adviceState.busy ? 'disabled' : ''}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+          </button>
+          <textarea id="advice-input" class="adv-input" rows="1" maxlength="4000"
+            placeholder="${adviceState.busy ? 'AI javob yozmoqda…' : 'Savolingizni yozing…'}"
+            oninput="adviceDraftInput(this)" onkeydown="adviceInputKey(event)"
+            ${adviceState.busy ? 'disabled' : ''}>${escapeHtml(adviceState.draft)}</textarea>
+          <button type="button" class="adv-send" id="advice-send" onclick="adviceSend()"
+            title="Yuborish" aria-label="Yuborish" ${adviceState.busy ? 'disabled' : ''}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+          </button>
         </div>
       </div>`;
 
@@ -145,7 +156,7 @@
   function adviceAutoGrow(el){
     if(!el) return;
     el.style.height = 'auto';
-    el.style.height = Math.min(122, Math.max(46, el.scrollHeight)) + 'px';
+    el.style.height = Math.min(132, Math.max(42, el.scrollHeight)) + 'px';
   }
 
   function adviceDraftInput(el){
@@ -372,7 +383,7 @@
   }
 
   function adviceNewChat(){
-    if(adviceState.messages.length > 1 && !confirm("Yangi suhbat boshlansinmi? Joriy suhbat o‘chiriladi.")) return;
+    if(adviceState.messages.length > 0 && !confirm("Yangi suhbat boshlansinmi? Joriy suhbat o‘chiriladi.")) return;
     adviceState.seq++;
     adviceReset();
     adviceRefreshHealth();
@@ -391,9 +402,5 @@
     if(!adviceState.messages.length) adviceReset();
     else adviceRenderChat();
     adviceRefreshHealth();
-  }
-
-  function adviceBack(){
-    switchTab('home');
   }
 
