@@ -1,0 +1,52 @@
+/* Englify — iPhone / iOS PWA (Bosh ekranga qo'shilgan ilova) uchun sozlashlar */
+/* Bu fayl eng oxirida yuklanadi, shuning uchun asosiy stillarni to'ldiradi. */
+
+@supports (padding: env(safe-area-inset-top)) {
+  /* Status bar / notch ostidagi kontent */
+  header { padding-top: env(safe-area-inset-top); }
+  .topbar { padding-top: calc(14px + env(safe-area-inset-top)); }
+
+  /* Pastdagi home-indicator (iPhone X va yangiroq) uchun joy */
+  .bottom-nav-bar {
+    height: calc(70px + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
+    box-sizing: border-box;
+  }
+  .app-dashboard .bottom-nav-bar {
+    height: calc(64px + env(safe-area-inset-bottom));
+  }
+  @media (max-width: 600px) {
+    .app-dashboard .bottom-nav-bar { height: calc(62px + env(safe-area-inset-bottom)); }
+  }
+
+  .pwa-install-banner { bottom: calc(84px + env(safe-area-inset-bottom)); }
+  .apk-modal { padding-top: max(20px, env(safe-area-inset-top)); padding-bottom: max(20px, env(safe-area-inset-bottom)); }
+  body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+}
+
+/* Uzun modal (iPhone yo'riqnomasi) kichik ekranda ham to'liq ko'rinsin */
+.apk-modal { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+@media (max-height: 720px) { .apk-modal { align-items: flex-start; } }
+.apk-modal-tab { white-space: nowrap; }
+@media (max-width: 380px) {
+  .apk-modal-tab { font-size: 11px; padding: 9px 2px; }
+}
+
+/* iOS'da inputga bosganda sahifa avtomatik zoom bo'lmasin (16px dan kichik shriftda zoom qiladi) */
+@supports (-webkit-touch-callout: none) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea { font-size: 16px; }
+}
+
+html { -webkit-tap-highlight-color: transparent; }
+
+/* Ilova sifatida (standalone) ochilganda navigatsiya matni tanlanmasin */
+@media (display-mode: standalone) {
+  body { overscroll-behavior-y: contain; }
+  .b-nav-tab,
+  .dash-nav-link,
+  .bottom-nav-bar,
+  .apk-modal-tab,
+  .pwa-btn { -webkit-user-select: none; user-select: none; }
+}

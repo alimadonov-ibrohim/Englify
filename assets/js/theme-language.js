@@ -13,13 +13,13 @@
     applyTheme();
   }
 
-  // ========== MULTI LANGUAGE (uz / en / de) ==========
+  // ========== MULTI LANGUAGE (uz / en) ==========
   const I18N = {
     uz: {
       home: 'Asosiy', courses: 'Kurslar', results: 'Natijalar', vocab: "Lug'at", profile: 'Profil',
       login: 'Kirish', register: "Ro'yxatdan o'tish", logout: 'Chiqish',
-      search: 'Qidirish', addWord: "Qo'shish", dictTitle: "Ingliz & Nemis Tili Lug'ati",
-      searchPh: "So‘z qidiring (masalan: freedom / Freiheit)...",
+      search: 'Qidirish', addWord: "Qo'shish", dictTitle: "Ingliz Tili Lug'ati",
+      searchPh: "So‘z qidiring…",
       loading: 'Qidirilmoqda...', notFound: 'So‘z topilmadi. Boshqa so‘z yozib ko‘ring.',
       error: 'Xatolik yuz berdi. Internetni tekshiring.',
       meaning: 'Ma\'nosi', example: 'Misol', speak: 'Talaffuz'
@@ -27,20 +27,11 @@
     en: {
       home: 'Home', courses: 'Courses', results: 'Results', vocab: 'Dictionary', profile: 'Profile',
       login: 'Login', register: 'Sign up', logout: 'Logout',
-      search: 'Search', addWord: 'Add', dictTitle: 'English & German Dictionary',
-      searchPh: 'Search a word (e.g. freedom / Freiheit)...',
+      search: 'Search', addWord: 'Add', dictTitle: 'English Dictionary',
+      searchPh: 'Search a word…',
       loading: 'Searching...', notFound: 'Word not found. Try another word.',
       error: 'Something went wrong. Check your internet.',
       meaning: 'Meaning', example: 'Example', speak: 'Pronounce'
-    },
-    de: {
-      home: 'Start', courses: 'Kurse', results: 'Ergebnisse', vocab: 'Wörterbuch', profile: 'Profil',
-      login: 'Anmelden', register: 'Registrieren', logout: 'Abmelden',
-      search: 'Suchen', addWord: 'Hinzufügen', dictTitle: 'Englisch & Deutsch Wörterbuch',
-      searchPh: 'Wort suchen (z.B. freedom / Freiheit)...',
-      loading: 'Suche läuft...', notFound: 'Wort nicht gefunden. Bitte anderes Wort versuchen.',
-      error: 'Fehler aufgetreten. Internet prüfen.',
-      meaning: 'Bedeutung', example: 'Beispiel', speak: 'Aussprache'
     }
   };
 

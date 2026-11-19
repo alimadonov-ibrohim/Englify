@@ -1,15 +1,25 @@
 {
-  "name": "Englify — Ingliz va Nemis tili markazi",
+  "id": "Englify.html",
+  "name": "Englify — Ingliz tili markazi",
   "short_name": "Englify",
-  "description": "Englify - ingliz va nemis tilini o'rganish markazi: testlar, video diktantlar va imtihon simulyatsiyasi.",
+  "description": "Englify - ingliz tilini o'rganish markazi: testlar, video diktantlar va imtihon simulyatsiyasi.",
   "lang": "uz",
   "start_url": "Englify.html",
   "scope": ".",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait-primary",
   "background_color": "#000000",
   "theme_color": "#000000",
+  "categories": ["education", "productivity"],
+  "prefer_related_applications": false,
   "icons": [
+    {
+      "src": "icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "icon-192.png",
       "sizes": "192x192",

@@ -17,11 +17,6 @@
       window.open('https://youtu.be/d-fvgkbTED0?list=PLkREkayoYCyI9KGsZ2TfeVccRv9zqP0gl&t=5', '_blank');
       return;
     }
-    // Nemis tili / Goethe — onlayn darslik (YouTube playlist)
-    if(c === 'Goethe A1-B1' || c === 'Nemis Tili' || (c && c.toLowerCase().includes('goethe'))){
-      window.open('https://youtu.be/oGY1i_fWQMY?list=PLkREkayoYCyJWJqU-mecKaouuLIEDRTZv&t=13', '_blank');
-      return;
-    }
     alert('"' + c + '" darslariga xush kelibsiz!');
   }
   function openCourseSyllabus(c){

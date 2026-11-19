@@ -484,7 +484,15 @@
       if (t) opts.headers['Authorization'] = 'Bearer ' + t;
     }
     if (body !== undefined && body !== null) opts.body = JSON.stringify(body);
-    const res = await fetch(API_BASE + path, opts);
+    const ctrl = new AbortController();
+    const timer = setTimeout(function(){ try { ctrl.abort(); } catch(e){} }, 15000);
+    opts.signal = ctrl.signal;
+    let res;
+    try {
+      res = await fetch(API_BASE + path, opts);
+    } finally {
+      clearTimeout(timer);
+    }
     let data = null;
     try { data = await res.json(); } catch (e) { data = null; }
     if (!res.ok) {
@@ -566,8 +574,22 @@
     }
   }
 
+  const ADMIN_EMAILS_EXTRA_KEY = 'sb_admin_emails';
+  function getAdminEmails(){
+    const list = ADMIN_EMAILS.slice();
+    try {
+      const extra = JSON.parse(localStorage.getItem(ADMIN_EMAILS_EXTRA_KEY) || '[]');
+      if(Array.isArray(extra)){
+        extra.forEach(function(e){
+          const email = String(e || '').trim().toLowerCase();
+          if(email && list.indexOf(email) < 0) list.push(email);
+        });
+      }
+    } catch(e){}
+    return list;
+  }
   function isAdminEmail(email){
-    return ADMIN_EMAILS.includes(String(email || '').trim().toLowerCase());
+    return getAdminEmails().includes(String(email || '').trim().toLowerCase());
   }
   function isAdmin(){
     const s = getSession();
@@ -601,6 +623,38 @@
   }
   function isValidEmail(email){
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  // Lokal (eski) admin hisobini serverda ham yaratib, token oladi.
+  // Shu tufayli admin panel barcha qurilmalardagi foydalanuvchilarni ko'radi.
+  async function ensureServerAccount(email, password, name){
+    function saveTokens(data){
+      if(!data) return null;
+      if(data.access) localStorage.setItem(TOKEN_KEY, data.access);
+      if(data.refresh) localStorage.setItem(REFRESH_KEY, data.refresh);
+      return data;
+    }
+    try {
+      return saveTokens(await api('POST', '/api/auth/login', { email, password }, false));
+    } catch(e1){
+      if(e1.status !== 401 && e1.status !== 400 && e1.status !== 404) return null;
+    }
+    try {
+      return saveTokens(await api('POST', '/api/auth/register', {
+        name: name || email.split('@')[0],
+        email: email,
+        phone: '',
+        password: password,
+        terms: true
+      }, false));
+    } catch(e2){
+      if(e2.status === 400){
+        try {
+          return saveTokens(await api('POST', '/api/auth/login', { email, password }, false));
+        } catch(e3){ return null; }
+      }
+      return null;
+    }
   }
 
   function doRegister(){
@@ -658,13 +712,30 @@
           if (data.refresh) localStorage.setItem(REFRESH_KEY, data.refresh);
           const sessionUser = withRole(data.user);
           setSession(sessionUser);
+
+          // Admin panel darhol ko'rishi uchun lokal nusxa ham saqlanadi
+          const users = getUsers();
+          users[email] = {
+            name: name,
+            email: email,
+            phone: phone,
+            password: password,
+            role: sessionUser.role,
+            status: (data.user && data.user.status) || 'active',
+            provider: (data.user && data.user.provider) || 'password',
+            createdAt: (data.user && data.user.createdAt) || new Date().toISOString(),
+            lastLoginAt: new Date().toISOString(),
+            synced: true
+          };
+          saveUsers(users);
+
           applyUserToUI(sessionUser);
-          if(okEl){ okEl.textContent = '✅ Muvaffaqiyatli! (backend)'; okEl.style.display = 'block'; }
+          if(okEl){ okEl.textContent = '✅ Muvaffaqiyatli ro‘yxatdan o‘tdingiz!'; okEl.style.display = 'block'; }
           setTimeout(function(){ showView('dashboard'); }, 600);
           return;
         } catch (apiErr) {
           // Backend ishlamasa — localStorage
-          if (apiErr.status === 400) {
+          if (apiErr.status === 400 || apiErr.status === 403) {
             showRegError(apiErr.message);
             return;
           }
@@ -676,6 +747,9 @@
           showRegError('Bu email allaqachon ro\'yxatdan o\'tgan. Kirish bo\'limidan foydalaning.');
           return;
         }
+        // Serverga ulanmaganmiz — eski tokenni ishlatmaymiz
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(REFRESH_KEY);
         const role = isAdminEmail(email) ? 'admin' : 'user';
         users[email] = { name: name, email: email, phone: phone, password: password, role: role, createdAt: new Date().toISOString() };
         saveUsers(users);
@@ -724,15 +798,34 @@
           localStorage.setItem(TOKEN_KEY, data.access);
           if (data.refresh) localStorage.setItem(REFRESH_KEY, data.refresh);
           const sessionUser = withRole(data.user);
+
+          // Lokal nusxani server ma'lumotlari bilan yangilaymiz
+          const users = getUsers();
+          const prev = users[email] || {};
+          users[email] = Object.assign({}, prev, {
+            name: (data.user && data.user.name) || prev.name || email.split('@')[0],
+            email: email,
+            phone: (data.user && data.user.phone) || prev.phone || '',
+            password: password,
+            role: sessionUser.role,
+            status: (data.user && data.user.status) || 'active',
+            provider: (data.user && data.user.provider) || 'password',
+            createdAt: (data.user && data.user.createdAt) || prev.createdAt || new Date().toISOString(),
+            lastLoginAt: new Date().toISOString(),
+            synced: true
+          });
+          saveUsers(users);
+
           setSession(sessionUser);
           applyUserToUI(sessionUser);
           showView('dashboard');
           return;
         } catch (apiErr) {
-          console.warn('API login fallback', apiErr);
-          if (apiErr.status === 401) {
-            // try local below
+          if (apiErr.status === 403) {
+            showLoginError(apiErr.message || 'Bu hisob bloklangan.');
+            return;
           }
+          console.warn('API login fallback', apiErr);
         }
         const users = getUsers();
         const user = users[email];
@@ -744,14 +837,29 @@
           showLoginError("Parol noto'g'ri. Qayta urinib ko'ring.");
           return;
         }
-        const sessionUser = withRole({ email: user.email, name: user.name, role: user.role });
+        if(user.status === 'blocked'){
+          showLoginError('Bu hisob bloklangan. Admin bilan bog‘laning.');
+          return;
+        }
         if(isAdminEmail(user.email)){
           users[user.email] = Object.assign({}, user, { role: 'admin' });
           saveUsers(users);
         }
+        // Server tokeni bu lokal sessiyaga tegishli emas — tozalaymiz
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(REFRESH_KEY);
+        const sessionUser = withRole({ email: user.email, name: user.name, role: user.role, phone: user.phone });
         setSession(sessionUser);
         applyUserToUI(sessionUser);
         showView('dashboard');
+
+        // Admin panel serverdagi foydalanuvchilarni ko'rishi uchun serverda ham hisob yaratamiz
+        // (eski lokal hisoblar keyingi kirishda serverga ko'chiriladi)
+        ensureServerAccount(user.email, password, user.name).then(function(data){
+          if(!data) return;
+          try { if(typeof adminRefreshUsers === 'function') adminRefreshUsers(); } catch(e){}
+          try { if(typeof adminRefreshResults === 'function') adminRefreshResults(); } catch(e){}
+        }).catch(function(){});
       })();
     } catch(e){
       console.error('Login error:', e);

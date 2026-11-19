@@ -46,11 +46,6 @@
         progress: ieltsSkills + '/4 ko\'nikma (L+R+W+S)',
         avg: avgBand.toFixed(1)
       },
-      goethe: {
-        // Goethe — kamida 3 ta rasmiy mock + Daily bajarilgan
-        unlocked: formalCompleted >= 3 && dailyOk,
-        progress: formalCompleted + '/5 rasmiy mock (Daily shart)'
-      },
       course: {
         // Kurs sertifikati — barcha 5 ta rasmiy mock + o'rtacha Band 6.5+
         unlocked: formalCompleted >= 5 && avgBand >= 6.5,
@@ -88,32 +83,6 @@
       }
     }
 
-    // Goethe
-    const cardG = document.getElementById('cert-card-goethe');
-    const btnG  = document.getElementById('cert-btn-goethe');
-    const reqG  = document.getElementById('cert-req-goethe');
-    if(cardG && btnG && reqG){
-      if(elig.goethe.unlocked){
-        cardG.style.opacity = '1';
-        cardG.style.filter = 'none';
-        btnG.disabled = false;
-        btnG.className = 'dash-btn dash-btn-primary';
-        btnG.style.cssText = 'padding:10px 18px;font-size:13px;white-space:nowrap;';
-        btnG.textContent = 'Sertifikat olish';
-        reqG.textContent = '✅ Ochiq • ' + elig.goethe.progress;
-        reqG.style.color = '#15803d';
-      } else {
-        cardG.style.opacity = '0.55';
-        cardG.style.filter = 'grayscale(0.4)';
-        btnG.disabled = true;
-        btnG.className = 'dash-btn';
-        btnG.style.cssText = 'padding:10px 18px;font-size:13px;white-space:nowrap;background:#94a3b8;color:#fff;cursor:not-allowed;';
-        btnG.textContent = '🔒 Yopiq';
-        reqG.textContent = '🔒 Kamida 3 ta mock test + Daily Tests — ' + elig.goethe.progress;
-        reqG.style.color = '';
-      }
-    }
-
     // Course
     const cardC = document.getElementById('cert-card-course');
     const btnC  = document.getElementById('cert-btn-course');
@@ -143,7 +112,7 @@
     // Status note
     const note = document.getElementById('cert-status-note');
     if(note){
-      const anyUnlocked = elig.ielts.unlocked || elig.goethe.unlocked || elig.course.unlocked;
+      const anyUnlocked = elig.ielts.unlocked || elig.course.unlocked;
       if(anyUnlocked){
         note.style.background = '#dcfce7';
         note.style.color = '#15803d';
@@ -165,7 +134,6 @@
 
     const meta = {
       ielts:  { title: 'IELTS Mock Sertifikati',   subtitle: 'International English Language Testing System', band: 'Band ' + elig.ielts.avg, color1: '#3b5cf6', color2: '#8b3ff5', icon: '📜' },
-      goethe: { title: 'Goethe-Zertifikat (B1)',   subtitle: 'Deutsch als Fremdsprache',                   band: 'B1 Level', color1: '#0f9aa8', color2: '#0e7c86', icon: '🏅' },
       course: { title: 'Kurs Bitiruv Sertifikati', subtitle: 'Englify Language Center',               band: 'Completed', color1: '#1fa85c', color2: '#0f8f7c', icon: '✅' }
     };
     const info = meta[type] || meta.ielts;
@@ -272,7 +240,7 @@
 
     ctx.fillStyle = '#64748b';
     ctx.font = '14px Arial, sans-serif';
-    ctx.fillText('Ingliz va Nemis Tili Markazi', W / 2, 145);
+    ctx.fillText('Ingliz Tili Markazi', W / 2, 145);
 
     // Certificate of Achievement
     ctx.fillStyle = cert.color1;

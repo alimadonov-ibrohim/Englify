@@ -240,8 +240,7 @@ function openNotifications(){
 function openLanguageModal(){
   const langs = [
     { code:'uz', label:"O'zbek tili", flag:'🇺🇿' },
-    { code:'en', label:'English', flag:'🇬🇧' },
-    { code:'de', label:'Deutsch', flag:'🇩🇪' }
+    { code:'en', label:'English', flag:'🇬🇧' }
   ];
   const current = (typeof getLang === 'function' ? getLang() : 'uz');
   const body = '<div class="prof-lang-list">' + langs.map(function(l){
@@ -259,7 +258,7 @@ function openLanguageModal(){
 function profPickLanguage(code){
   if(typeof setLanguage === 'function') setLanguage(code);
   const lab = document.getElementById('prof-lang-label');
-  if(lab) lab.textContent = code === 'en' ? 'English' : (code === 'de' ? 'Deutsch' : "O'zbek tili");
+  if(lab) lab.textContent = code === 'en' ? 'English' : "O'zbek tili";
   profModalClose('prof-lang-modal');
   profToast('Til o\'zgartirildi', 'ok');
 }
@@ -268,7 +267,7 @@ function profPickLanguage(code){
 function openGuideModal(){
   const body =
     '<div class="prof-doc">' +
-      '<p>Englify — IELTS va nemis tilini onlayn mashq qilish platformasi. Quyidagi qadamlar bilan boshlang:</p>' +
+      '<p>Englify — IELTS va ingliz tilini onlayn mashq qilish platformasi. Quyidagi qadamlar bilan boshlang:</p>' +
       '<ol class="prof-doc-list">' +
         '<li><b>Test tanlang.</b> Asosiy sahifada Listening, Reading, Writing, Speaking, Daily yoki Full Exam bo\'limlarini oching.</li>' +
         '<li><b>Topshiring.</b> Har bir test yakunida natija va taxminiy Band ball avtomatik hisoblanadi.</li>' +

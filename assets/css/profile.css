@@ -8,12 +8,34 @@
   .progress-wrap{background:var(--line);border-radius:100px;height:8px;overflow:hidden;margin:12px 0 6px;}
   .progress-bar{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--blue),#1fa85c);}
 
-  .vocab-flashcard-box{background:linear-gradient(135deg,var(--blue-deep),#2563eb);color:#fff;border-radius:20px;padding:36px;text-align:center;box-shadow:0 12px 24px -10px rgba(18,58,117,0.4);margin-bottom:28px;cursor:pointer;position:relative;user-select:none;}
-  .vocab-word-large{font-family:'Fraunces',serif;font-size:38px;font-weight:600;margin-bottom:8px;}
-  .vocab-search{width:100%;padding:12px 18px;border:1px solid var(--line);border-radius:12px;font-size:15px;margin-bottom:20px;outline:none;}
-  .vocab-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
-  .vocab-item{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:8px;}
-  .audio-btn{background:var(--blue-tint);border:none;color:var(--blue-deep);width:32px;height:32px;border-radius:50%;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:14px;}
+  /* Lug'at — faqat qidiruv va natija, chiroyli ko'rinish */
+  #vocab{position:relative;}
+  #vocab::before{content:'';position:absolute;top:-40px;left:50%;transform:translateX(-50%);width:min(680px,92%);height:240px;background:radial-gradient(ellipse at center,rgba(59,92,246,.14),transparent 70%);pointer-events:none;}
+  #vocab > *{position:relative;}
+
+  .dict-search{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:10px 10px 10px 14px;box-shadow:0 16px 40px -24px rgba(15,32,60,.45);transition:border-color .25s,box-shadow .25s,transform .25s;}
+  .dict-search:hover{transform:translateY(-2px);box-shadow:0 22px 48px -24px rgba(15,32,60,.55);}
+  .dict-search:focus-within{border-color:var(--blue);box-shadow:0 0 0 5px rgba(59,92,246,.14),0 22px 48px -24px rgba(15,32,60,.5);}
+  .dict-search-icon{width:42px;height:42px;flex-shrink:0;border-radius:14px;background:linear-gradient(135deg,#3b5cf6,#8b3ff5);display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 8px 18px -8px rgba(59,92,246,.85);}
+  .dict-search-input{flex:1;min-width:0;border:0;outline:none;background:transparent;color:var(--ink);font-size:16px;font-weight:600;letter-spacing:-.01em;font-family:'Manrope',sans-serif;padding:10px 0;}
+  .dict-search-input::placeholder{color:var(--ink-soft);opacity:.7;font-weight:500;}
+  .dict-search-btn{border:0;background:linear-gradient(135deg,#3b5cf6,#8b3ff5);color:#fff;width:44px;height:44px;border-radius:14px;font-size:20px;font-weight:800;cursor:pointer;flex-shrink:0;box-shadow:0 8px 18px -8px rgba(59,92,246,.85);transition:transform .18s,box-shadow .18s;}
+  .dict-search-btn:hover{transform:translateY(-2px) scale(1.03);box-shadow:0 12px 26px -8px rgba(59,92,246,.95);}
+  .dict-search-btn:active{transform:scale(.97);}
+  .dict-spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--blue);border-radius:50%;animation:dictSpin .7s linear infinite;}
+  @keyframes dictSpin{to{transform:rotate(360deg)}}
+  .dict-loading{text-align:center;padding:44px;}
+  .dict-results{margin-top:22px;}
+  .dict-results:empty{display:none;}
+  .dict-card{position:relative;overflow:hidden;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:28px 30px;box-shadow:0 18px 44px -26px rgba(15,32,60,.5);animation:dictIn .35s cubic-bezier(.2,.8,.2,1);}
+  .dict-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,#3b5cf6,#8b3ff5);}
+  .dict-card::after{content:'';position:absolute;right:-50px;top:-50px;width:170px;height:170px;border-radius:50%;background:radial-gradient(circle,rgba(59,92,246,.12),transparent 70%);pointer-events:none;}
+  @keyframes dictIn{from{opacity:0;transform:translateY(10px) scale(.99)}to{opacity:1;transform:none}}
+  .dict-card h4{position:relative;font-family:'Fraunces',serif;font-size:30px;line-height:1.15;letter-spacing:-.02em;margin:0 0 8px;color:var(--ink);word-break:break-word;}
+  @supports(-webkit-background-clip:text){.dict-card h4{background:linear-gradient(120deg,var(--ink),var(--blue-deep));-webkit-background-clip:text;background-clip:text;color:transparent;}}
+  .dict-phon{position:relative;display:inline-block;background:var(--blue-tint);color:var(--blue-deep);padding:5px 13px;border-radius:100px;font-size:13px;font-weight:700;letter-spacing:.01em;}
+  .dict-def{position:relative;margin-top:20px;padding:17px 20px;border-radius:14px;background:var(--paper);border:1px solid var(--line);font-size:15.5px;line-height:1.65;}
+  .dict-empty{text-align:center;padding:44px 20px;border:1px dashed var(--line);border-radius:20px;color:var(--ink-soft);background:var(--card);font-size:14.5px;box-shadow:0 16px 40px -26px rgba(15,32,60,.4);}
 
   .profile-head{display:flex;align-items:center;gap:20px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;margin-bottom:24px;}
   .profile-big-avatar{width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg,#3b5cf6,#8b3ff5);color:#fff;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;flex-shrink:0;}

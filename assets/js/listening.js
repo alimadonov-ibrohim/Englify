@@ -4,19 +4,19 @@
   const LISTEN_BANK = [
     {
       id: 'languages',
-      title: 'The Value of Learning Languages',
-      script: "Today we will talk about the importance of learning foreign languages. Many students study English because it is an international language. German is also popular in Europe, especially for work and study opportunities in countries like Germany and Austria. Learning a new language also opens the door to new cultures and friendships. Experts recommend practicing a little every day, because small steps lead to big results.",
+      title: 'The Value of Learning English',
+      script: "Today we will talk about the importance of learning English. English is an international language, and it is used in many countries for work, study and travel. Students learn English because it gives them access to a wider world of information, books and films. Experts also say that learning a new language improves memory and confidence. The best way to make progress is to practice a little every day: listen to short recordings, read simple texts and speak with friends. Small steps lead to big results over time.",
       qs: [
-        { q: "What is the main topic of the talk?", opts: ["Sports", "Foreign languages", "Food", "Travel"], ans: 1, hint: "Today we will talk about the importance of learning foreign languages." },
+        { q: "What is the main topic of the talk?", opts: ["Sports", "Learning English", "Food", "Travel"], ans: 1, hint: "Today we will talk about the importance of learning English." },
         { q: "Why do many students choose to study English?", opts: ["It is easy", "It is an international language", "It is required for cooking", "It has no grammar"], ans: 1, hint: "Many students study English because it is an international language." },
-        { q: "Where is German especially popular for career opportunities?", opts: ["Asia", "Africa", "Europe", "South America"], ans: 2, hint: "German is also popular in Europe, especially for work and study opportunities in countries like Germany and Austria." },
-        { q: "What does learning a new language open the door to?", opts: ["New cultures and friendships", "Cheap travel tickets", "Free university courses", "Better cooking skills"], ans: 0, hint: "Learning a new language also opens the door to new cultures and friendships." },
-        { q: "What do experts recommend?", opts: ["Studying only before exams", "Practicing a little every day", "Learning many languages at once", "Watching TV in English only"], ans: 1, hint: "Experts recommend practicing a little every day, because small steps lead to big results." },
-        { q: "Which two countries are mentioned as places where German is useful?", opts: ["Germany and Austria", "France and Spain", "Italy and Greece", "England and Ireland"], ans: 0, hint: "German is also popular in Europe, especially for work and study opportunities in countries like Germany and Austria." },
-        { q: "What is the speaker's attitude towards learning languages?", opts: ["It is unnecessary", "It is a waste of time", "It is valuable and encouraging", "It is only for children"], ans: 2, hint: "Learning a new language also opens the door to new cultures and friendships." },
-        { q: "According to the talk, what do small steps lead to?", opts: ["Small problems", "Big results", "Long delays", "No progress"], ans: 1, hint: "Because small steps lead to big results." },
-        { q: "Which benefit is NOT mentioned in the talk?", opts: ["New cultures", "New friendships", "Study opportunities abroad", "A guaranteed higher salary"], ans: 3, hint: "The talk mentions cultures, friendships, work and study opportunities, but not a guaranteed salary." },
-        { q: "What is the best title for this talk?", opts: ["The History of English", "Why Learning Foreign Languages Matters", "How to Cook German Food", "Travel in Europe"], ans: 1, hint: "The whole talk is about the importance and benefits of learning foreign languages." }
+        { q: "Where is English used, according to the talk?", opts: ["Only in one country", "In many countries", "Only at home", "Only in exams"], ans: 1, hint: "English is an international language, and it is used in many countries for work, study and travel." },
+        { q: "What access does English give students?", opts: ["More information, books and films", "Cheap travel tickets", "Free university courses", "Better cooking skills"], ans: 0, hint: "It gives them access to a wider world of information, books and films." },
+        { q: "What do experts say about learning a new language?", opts: ["It is unnecessary", "It improves memory and confidence", "It is only for children", "It has no benefits"], ans: 1, hint: "Experts also say that learning a new language improves memory and confidence." },
+        { q: "What do experts recommend?", opts: ["Studying only before exams", "Practicing a little every day", "Learning many languages at once", "Watching TV only"], ans: 1, hint: "The best way to make progress is to practice a little every day." },
+        { q: "Which activity is NOT mentioned as daily practice?", opts: ["Listening to short recordings", "Reading simple texts", "Speaking with friends", "Playing computer games"], ans: 3, hint: "The talk mentions listening, reading and speaking with friends." },
+        { q: "According to the talk, what do small steps lead to?", opts: ["Small problems", "Big results", "Long delays", "No progress"], ans: 1, hint: "Because small steps lead to big results over time." },
+        { q: "Which benefit is NOT mentioned in the talk?", opts: ["More information", "Better memory", "More confidence", "A guaranteed higher salary"], ans: 3, hint: "The talk mentions information, memory and confidence, but not a guaranteed salary." },
+        { q: "What is the best title for this talk?", opts: ["The History of English", "Why Learning English Matters", "How to Cook at Home", "Travel in Europe"], ans: 1, hint: "The whole talk is about the importance and benefits of learning English." }
       ]
     },
     {

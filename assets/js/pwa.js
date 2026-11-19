@@ -24,10 +24,21 @@
   const HTML_FILE = 'Englify.html';
 
   // --- Service Worker ro'yxatdan o'tkazish (offline cache uchun) ---
+  // Ilova yangilanganda eski kesh tozalanadi va sahifa bir marta yangilanadi.
+  let swRefreshing = false;
   if('serviceWorker' in navigator){
+    const hadController = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.addEventListener('controllerchange', function(){
+      if(swRefreshing) return;
+      swRefreshing = true;
+      // Birinchi o'rnatishda emas, faqat yangilanishda sahifani yangilaymiz.
+      if(hadController) window.location.reload();
+    });
     window.addEventListener('load', function(){
       navigator.serviceWorker.register('sw.js').then(function(reg){
         console.log('[PWA] Service Worker ro\'yxatdan o\'tdi:', reg.scope);
+        // Yangi versiyani fonda tekshirish
+        try { reg.update(); } catch(e){}
       }).catch(function(err){
         console.warn('[PWA] SW xatosi:', err);
       });
@@ -81,12 +92,12 @@
 
   function pwaInstallNow(){
     if(!deferredPrompt){
-      // Brauzer qo'llab-quvvatlamaydi — qo'llanma ko'rsatamiz
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-      if(isIOS){
-        alert('iOS Safari\'da o\'rnatish:\\n\\n1. Pastki panelidagi Share tugmasini bosing (☐↑)\\n2. "Add to Home Screen" tanlang\\n3. "Add" tugmasini bosing');
+      // iPhone / iPad — Safari orqali "Bosh ekranga qo'shish" yo'riqnomasi
+      if(pwaIsIOS()){
+        pwaOpenIosGuide();
       } else {
-        alert('Brauzeringiz avtomatik o\'rnatishni qo\'llab-quvvatlamaydi.\\n\\nManual usul:\\n1. Brauzer menyusini oching (⋮)\\n2. "Add to Home screen" / "Bosh ekranga qo\'shish" ni tanlang\\n3. Tasdiqlang');
+        // Boshqa brauzerlar (Firefox, eski Chrome va h.k.)
+        alert('Brauzeringiz avtomatik o\'rnatishni qo\'llab-quvvatlamaydi.\n\nManual usul:\n1. Brauzer menyusini oching (⋮)\n2. "Add to Home screen" / "Bosh ekranga qo\'shish" ni tanlang\n3. Tasdiqlang');
       }
       return;
     }
@@ -110,6 +121,19 @@
     const banner = document.getElementById('pwa-install-banner');
     if(banner) banner.classList.remove('show');
     sessionStorage.setItem('pwa_banner_dismissed', '1');
+  }
+
+  // iPhone / iPad uchun vizual yo'riqnoma (Safari → Ulashish → Bosh ekranga qo'shish)
+  function pwaOpenIosGuide(){
+    const modal = document.getElementById('apk-qr-modal');
+    if(modal){
+      try { apkRenderQr(); } catch(e){}
+      modal.style.display = 'flex';
+      const btn = document.getElementById('apk-tab-btn-ios');
+      if(btn) apkSwitchModalTab('ios', btn);
+    }
+    const banner = document.getElementById('pwa-install-banner');
+    if(banner) banner.classList.remove('show');
   }
 
   // PWA detection — standalone (o'rnatilgan) rejimda ekanligini tekshirish
@@ -233,7 +257,7 @@
     const tabs = parent.querySelectorAll('.apk-modal-tab');
     tabs.forEach(function(t){ t.classList.remove('active'); });
     btnEl.classList.add('active');
-    ['qr','pwa','manual'].forEach(function(t){
+    ['qr','pwa','ios','manual'].forEach(function(t){
       const p = document.getElementById('apk-panel-' + t);
       if(p) p.classList.toggle('active', t === tab);
     });
@@ -282,149 +306,329 @@
     doCopy(url);
   }
 
-  // ========== GOOGLE OAUTH orqali kirish ==========
-  // Google Cloud Console dan OAuth Client ID oling va shu yerga qo'ying
-  // Project: midyear-machine-513919-j7
-  // https://console.cloud.google.com/apis/credentials
-  const GOOGLE_CLIENT_ID = ''; // OAuth Client ID qo'ying: '123456789-xxxxx.apps.googleusercontent.com'
+  // ========== GOOGLE OAUTH (haqiqiy) ==========
+  // Client ID backend'dan olinadi (/api/auth/config) — kodda hardcode qilinmaydi.
+  // Credential serverda Google kalitlari bilan tekshiriladi (/api/auth/google).
+  let googleClientId = '';
+  let googleConfigLoaded = false;
+  let googleConfigPromise = null;
+  let googleInitialized = false;
+  let googleRendered = { login: false, register: false };
+  let googleBusy = false;
+  // Nima uchun Google ishlamayotganini aniq ko'rsatish uchun sabab kodi.
+  // 'protocol' | 'config' | 'clientid' | 'script' | ''
+  let googleIssue = '';
 
-  // Google Identity Services script ni yuklash
+  function loadGoogleConfig(force){
+    if(googleConfigLoaded && !force) return Promise.resolve(googleClientId);
+    if(googleConfigPromise) return googleConfigPromise;
+    googleConfigPromise = api('GET', '/api/auth/config', null, false).then(function(cfg){
+      googleClientId = String((cfg && cfg.googleClientId) || '').trim();
+      googleConfigLoaded = true;
+      googleIssue = googleClientId ? '' : 'clientid';
+      googleConfigPromise = null;
+      return googleClientId;
+    }).catch(function(err){
+      googleConfigPromise = null;
+      googleIssue = 'config';
+      console.warn('[Google] config yuklanmadi:', err && err.message);
+      return '';
+    });
+    return googleConfigPromise;
+  }
+
   function loadGoogleScript(){
-    if(window.google && window.google.accounts) return Promise.resolve();
+    if(window.google && window.google.accounts && window.google.accounts.id) return Promise.resolve();
     return new Promise(function(resolve, reject){
-      if(document.getElementById('google-gsi-script')){
-        // Script allaqachon yuklangan — kutib turamiz
-        if(window.google && window.google.accounts){ resolve(); return; }
+      var existing = document.getElementById('google-gsi-script');
+      if(existing){
+        if(window.google && window.google.accounts && window.google.accounts.id){ resolve(); return; }
+        var done = false;
+        function ok(){ if(done) return; done = true; resolve(); }
+        function fail(){ if(done) return; done = true; reject(new Error('Google skripti yuklanmadi')); }
+        existing.addEventListener('load', ok);
+        existing.addEventListener('error', fail);
+        setTimeout(function(){
+          if(window.google && window.google.accounts && window.google.accounts.id) ok();
+        }, 50);
+        return;
       }
-      const s = document.createElement('script');
+      var s = document.createElement('script');
       s.id = 'google-gsi-script';
       s.src = 'https://accounts.google.com/gsi/client';
       s.async = true;
       s.defer = true;
-      s.onload = resolve;
-      s.onerror = function(){ reject(new Error('Google script yuklanmadi')); };
+      s.onload = function(){ resolve(); };
+      s.onerror = function(){ reject(new Error('Google skripti yuklanmadi')); };
       document.head.appendChild(s);
     });
   }
 
-  // Google bilan kirish — Google hisob tanlash oynasini ochadi (popup)
-  function loginWithGoogle(){
-    if(GOOGLE_CLIENT_ID){
-      // Haqiqiy Google OAuth — GIS popup orqali hisob tanlash
-      loadGoogleScript().then(function(){
-        if(!window.google || !window.google.accounts){
-          alert('Google authentication yuklanmadi. Internetni tekshiring.');
-          return;
+  function ensureGoogleWrappers(){
+    ['login','register'].forEach(function(kind){
+      var btn = document.getElementById('google-' + kind + '-btn');
+      if(!btn) return;
+      var wrap = document.getElementById('google-' + kind + '-wrap');
+      if(!wrap){
+        wrap = document.createElement('div');
+        wrap.id = 'google-' + kind + '-wrap';
+        wrap.className = 'google-btn-wrap';
+        btn.parentNode.insertBefore(wrap, btn);
+        wrap.appendChild(btn);
+      }
+      var slot = document.getElementById('google-gsi-' + kind);
+      if(!slot){
+        slot = document.createElement('div');
+        slot.id = 'google-gsi-' + kind;
+        slot.className = 'google-gsi-slot';
+        wrap.appendChild(slot);
+      }
+    });
+  }
+
+  function initGoogleIdentity(){
+    if(googleInitialized) return Promise.resolve(true);
+    if(location.protocol !== 'http:' && location.protocol !== 'https:'){
+      // Google OAuth faqat http(s) origin'da ishlaydi (file:// — "null" origin).
+      googleIssue = 'protocol';
+      return Promise.resolve(false);
+    }
+    return loadGoogleConfig().then(function(clientId){
+      if(!clientId) return false;
+      return loadGoogleScript().then(function(){
+        if(!window.google || !window.google.accounts || !window.google.accounts.id){
+          throw new Error('Google Identity Services yuklanmadi');
         }
-        // Google Identity Services ni sozlash
         window.google.accounts.id.initialize({
-          client_id: GOOGLE_CLIENT_ID,
+          client_id: clientId,
           callback: handleGoogleCredential,
           auto_select: false,
-          cancel_on_tap_outside: false
+          cancel_on_tap_outside: true,
+          ux_mode: 'popup',
+          context: 'signin'
         });
-        // Google hisob tanlash oynasini ochish (One Tap yoki popup)
-        window.google.accounts.id.prompt(function(notification){
-          if(notification.isNotDisplayed() || notification.isSkippedMoment()){
-            // One Tap ko'rsatilmadi — tugma bilan ko'rsatamiz
-            const container = document.createElement('div');
-            container.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10000;background:#fff;padding:24px;border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,0.3);';
-            container.innerHTML = '<div style="font-size:18px;font-weight:700;margin-bottom:16px;color:#1a1a1a;">Google hisobingizni tanlang</div><div id="google-render-btn"></div><button onclick="this.parentNode.remove()" style="margin-top:16px;width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;background:#fff;cursor:pointer;font-size:14px;">Bekor qilish</button>';
-            document.body.appendChild(container);
-            window.google.accounts.id.renderButton(
-              document.getElementById('google-render-btn'),
-              { theme: 'outline', size: 'large', text: 'signin_with', shape: 'rectangular', width: 280 }
-            );
-          }
-        });
-      }).catch(function(){
-        alert('Google authentication yuklanmadi. Internetni tekshiring.');
+        googleInitialized = true;
+        googleIssue = '';
+        return true;
       });
-    } else {
-      // GOOGLE_CLIENT_ID sozlanmagan — demo rejim
-      // Foydalanuvchiga tushuntirish va demo kirish
-      demoGoogleLogin();
-    }
+    }).catch(function(err){
+      googleIssue = 'script';
+      console.warn('[Google] init xatosi:', err && err.message);
+      return false;
+    });
   }
 
-  // Demo rejim — Google Client ID bo'lmasa
-  function demoGoogleLogin(){
-    const proceed = confirm(
-      'Google bilan kirish uchun Google Client ID sozlanishi kerak.\n\n' +
-      'Hozircha DEMO rejimda ishlaydi — email va ism ni qo\'lda kiriting.\n\n' +
-      'Haqiqiy Google OAuth uchun:\n' +
-      '1. console.cloud.google.com/apis/credentials ga kiring\n' +
-      '2. OAuth 2.0 Client ID yarating\n' +
-      '3. Kod ichidagi GOOGLE_CLIENT_ID ga qo\'ying\n\n' +
-      'Demo rejimda davom etasizmi?'
-    );
-    if(!proceed) return;
-    const email = prompt('Google email manzilingiz:\n(masalan: yourname@gmail.com)');
-    if(!email) return;
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
-      alert('Noto\'g\'ri email formati.');
-      return;
+  function googleSetupMessage(){
+    if(googleIssue === 'protocol'){
+      return "Google bilan kirish uchun saytni http(s) manzilida oching. Englify.html ni ikki marta bosib (file://) ochganda Google ishlamaydi — Englify-server.bat ni ishga tushiring yoki live saytdan foydalaning.";
     }
-    const name = prompt('Ism familiyangiz:', '');
-    if(!name) return;
-    googleAuthUser(email.toLowerCase(), name.trim(), '');
+    if(googleIssue === 'config'){
+      return "Google sozlamalari serverdan olinmadi (/api/auth/config). Saytning yangi versiyasi deploy qilinganligini va backend ishlab turganligini tekshiring.";
+    }
+    if(googleIssue === 'script'){
+      return "Google Identity Services yuklanmadi. Internet aloqasini tekshirib, sahifani qayta yuklang.";
+    }
+    return "Google bilan kirish hali sozlanmagan. Administrator Google Cloud Console'da OAuth Client ID yaratib, Vercel'ga GOOGLE_CLIENT_ID qo'shishi kerak.";
   }
 
-  // Google credential response ni qayta ishlash (GIS One Tap / button)
-  function handleGoogleCredential(response){
-    if(!response || !response.credential){
-      return;
-    }
-    try {
-      const payload = JSON.parse(atob(response.credential.split('.')[1]));
-      const email = (payload.email || '').toLowerCase();
-      const name = payload.name || payload.given_name || 'Google User';
-      const picture = payload.picture || '';
-      if(email){
-        googleAuthUser(email, name, picture);
-        // Popup ni yopish
-        const popup = document.querySelector('[style*="position:fixed;top:50%;left:50%"]');
-        if(popup) popup.remove();
+  function renderGoogleButtons(){
+    if(!googleClientId || !googleInitialized) return;
+    ensureGoogleWrappers();
+    ['login','register'].forEach(function(kind){
+      var slot = document.getElementById('google-gsi-' + kind);
+      var fallback = document.getElementById('google-' + kind + '-btn');
+      if(!slot) return;
+      // Allaqachon chizilgan va iframe mavjud bo'lsa — qayta chizmaymiz
+      if(slot.querySelector('iframe')) return;
+      slot.innerHTML = '';
+      var wrap = document.getElementById('google-' + kind + '-wrap');
+      var width = Math.max(240, Math.min(360, (wrap && wrap.clientWidth) || 320));
+      try {
+        window.google.accounts.id.renderButton(slot, {
+          type: 'standard',
+          theme: 'outline',
+          size: 'large',
+          text: kind === 'register' ? 'signup_with' : 'continue_with',
+          shape: 'pill',
+          logo_alignment: 'left',
+          width: width
+        });
+        slot.style.display = 'flex';
+        slot.style.justifyContent = 'center';
+        // Google iframe'i haqiqatan paydo bo'lganini tekshiramiz.
+        // Bo'lmasa (masalan origin ruxsat etilmagan) — zaxira tugma qoladi.
+        var attempts = 0;
+        function checkRendered(){
+          attempts++;
+          if(slot.querySelector('iframe')){
+            slot.style.display = 'flex';
+            if(fallback) fallback.style.display = 'none';
+            googleRendered[kind] = true;
+          } else if(attempts < 8){
+            setTimeout(checkRendered, 120);
+          } else {
+            googleRendered[kind] = false;
+            if(fallback) fallback.style.display = '';
+          }
+        }
+        checkRendered();
+      } catch(e){
+        console.warn('[Google] render xatosi:', e && e.message);
       }
-    } catch(e){
-      console.error('Google decode xatosi:', e);
+    });
+  }
+
+  function initGoogleSignIn(){
+    return initGoogleIdentity().then(function(ok){
+      if(ok) renderGoogleButtons();
+      return ok;
+    });
+  }
+
+  // showView() har safar login/register ochilganda chaqiriladi
+  function pwaRenderGoogleButtons(){
+    if(!googleConfigLoaded){
+      loadGoogleConfig().then(function(id){
+        if(id) initGoogleSignIn();
+      });
+      return;
+    }
+    if(!googleClientId) return;
+    if(!googleInitialized){ initGoogleSignIn(); return; }
+    renderGoogleButtons();
+  }
+
+  function showGoogleStatus(msg){
+    var regView = document.getElementById('view-register');
+    var regErr = document.getElementById('register-error');
+    var loginErr = document.getElementById('login-error');
+    var el = (regView && regView.style.display !== 'none') ? regErr : loginErr;
+    if(el){
+      el.textContent = msg;
+      el.style.display = 'block';
+      el.scrollIntoView({ block: 'nearest' });
+    } else {
+      alert(msg);
     }
   }
 
-  // Google user ni tizimga kiritish
-  function googleAuthUser(email, name, picture){
-    email = email.toLowerCase();
-    const users = getUsers();
-    // Agar foydalanuvchi mavjud bo'lsa — kirish, aks holda ro'yxatdan o'tish
-    if(users[email]){
-      // Mavjud foydalanuvchi — kirish
-      const existing = users[email];
-      if(picture) existing.picture = picture;
-      existing.google = true;
-      saveUsers(users);
-      const sessionUser = withRole({ email: email, name: existing.name, role: existing.role });
-      setSession(sessionUser);
-      applyUserToUI(sessionUser);
-      showView('dashboard');
-    } else {
-      // Yangi foydalanuvchi — ro'yxatdan o'tish
-      const role = isAdminEmail(email) ? 'admin' : 'user';
-      users[email] = {
-        name: name,
-        email: email,
-        phone: '',
-        password: 'google_' + Date.now(), // Google orqali kelganlar uchun tasodifiy parol
-        role: role,
-        picture: picture || '',
-        google: true,
-        createdAt: new Date().toISOString()
-      };
-      saveUsers(users);
-      const sessionUser = withRole({ email: email, name: name, role: role });
-      setSession(sessionUser);
-      applyUserToUI(sessionUser);
-      showView('dashboard');
+  function pwaCloseGoogleModal(){
+    var modal = document.getElementById('google-auth-modal');
+    if(modal) modal.style.display = 'none';
+    var st = document.getElementById('google-modal-status');
+    if(st) st.textContent = '';
+  }
+
+  function openGoogleModal(){
+    var modal = document.getElementById('google-auth-modal');
+    if(!modal) return;
+    var slot = document.getElementById('google-modal-slot');
+    var st = document.getElementById('google-modal-status');
+    if(slot) slot.innerHTML = '';
+    if(st) st.textContent = 'Google hisobingizni tanlang…';
+    modal.style.display = 'flex';
+    if(window.google && window.google.accounts && window.google.accounts.id){
+      try {
+        window.google.accounts.id.renderButton(slot, {
+          type: 'standard',
+          theme: 'outline',
+          size: 'large',
+          text: 'continue_with',
+          shape: 'pill',
+          logo_alignment: 'left',
+          width: 300
+        });
+      } catch(e){}
     }
+    setTimeout(function(){
+      if(st && slot && !slot.querySelector('iframe')){
+        st.textContent = "Google tugmasini chizib bo'lmadi. Sayt manzili Google Console'da Authorized JavaScript origins ro'yxatiga qo'shilganini tekshiring.";
+      }
+    }, 900);
+  }
+
+  // Bizning tugma bosilganda rasmiy Google tugmasini modalda ko'rsatamiz
+  function loginWithGoogle(){
+    if(googleBusy) return;
+    initGoogleIdentity().then(function(ok){
+      if(!ok){
+        showGoogleStatus(googleSetupMessage());
+        return;
+      }
+      openGoogleModal();
+    });
+  }
+
+  // Google qaytgan credential'ni serverda tekshirib, hisobga kiramiz
+  function handleGoogleCredential(response){
+    if(googleBusy) return;
+    if(!response || !response.credential){
+      showGoogleStatus("Google hisob ma'lumoti olinmadi. Qayta urinib ko'ring.");
+      return;
+    }
+    googleBusy = true;
+    setGoogleButtonsDisabled(true);
+    var st = document.getElementById('google-modal-status');
+    if(st) st.textContent = 'Tekshirilmoqda…';
+
+    api('POST', '/api/auth/google', { credential: response.credential }, false).then(function(data){
+      if(!data || !data.access || !data.user){
+        throw new Error("Serverdan noto'g'ri javob keldi.");
+      }
+      localStorage.setItem('sb_access', data.access);
+      if(data.refresh) localStorage.setItem('sb_refresh', data.refresh);
+
+      var user = data.user;
+      var email = String(user.email || '').toLowerCase();
+      var sessionUser = withRole(user);
+
+      var users = getUsers();
+      var prev = users[email] || {};
+      users[email] = Object.assign({}, prev, {
+        name: user.name || prev.name || email.split('@')[0],
+        email: email,
+        phone: user.phone || prev.phone || '',
+        password: prev.password || '',
+        role: sessionUser.role,
+        status: user.status || 'active',
+        provider: 'google',
+        google: true,
+        picture: user.picture || prev.picture || '',
+        createdAt: user.createdAt || prev.createdAt || new Date().toISOString(),
+        lastLoginAt: new Date().toISOString(),
+        synced: true
+      });
+      saveUsers(users);
+      setSession(sessionUser);
+      applyUserToUI(sessionUser);
+      try { if(typeof adminRefreshUsers === 'function') adminRefreshUsers(); } catch(e){}
+      try { if(typeof adminRefreshResults === 'function') adminRefreshResults(); } catch(e){}
+      pwaCloseGoogleModal();
+      showView('dashboard');
+    }).catch(function(err){
+      var msg = (err && err.message) ? err.message : 'Google bilan kirishda xatolik.';
+      if(st) st.textContent = msg;
+      showGoogleStatus(msg);
+    }).then(function(){
+      googleBusy = false;
+      setGoogleButtonsDisabled(false);
+    });
+  }
+
+  function setGoogleButtonsDisabled(disabled){
+    ['google-login-btn','google-register-btn'].forEach(function(id){
+      var b = document.getElementById(id);
+      if(b){ b.disabled = !!disabled; b.style.opacity = disabled ? '.65' : ''; }
+    });
+    var modal = document.getElementById('google-auth-modal');
+    if(modal) modal.style.pointerEvents = disabled ? 'none' : '';
+  }
+
+  // Sahifa ochilganda config + rasmiy Google tugmalarini tayyorlaymiz
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(initGoogleSignIn, 0); });
+  } else {
+    setTimeout(initGoogleSignIn, 0);
   }
 
   function applyUserToUI(user){
@@ -452,7 +656,7 @@
     const langLab = document.getElementById('prof-lang-label');
     if(langLab){
       const l = getLang();
-      langLab.textContent = l === 'en' ? 'English' : (l === 'de' ? 'Deutsch' : "O'zbek tili");
+      langLab.textContent = l === 'en' ? 'English' : "O'zbek tili";
     }
 
     // Admin badge
@@ -481,14 +685,14 @@
   }
 
   function cycleLanguage(){
-    const order = ['uz', 'en', 'de'];
+    const order = ['uz', 'en'];
     const cur = getLang();
     const next = order[(order.indexOf(cur) + 1) % order.length];
     setLanguage(next);
     const sel = document.getElementById('lang-select');
     if(sel) sel.value = next;
     const langLab = document.getElementById('prof-lang-label');
-    if(langLab) langLab.textContent = next === 'en' ? 'English' : (next === 'de' ? 'Deutsch' : "O'zbek tili");
+    if(langLab) langLab.textContent = next === 'en' ? 'English' : "O'zbek tili";
   }
 
   /* ===== APK / PWA: Telefonga yuklash (yangilangan) ===== */
@@ -644,6 +848,11 @@
     const installBtn = document.getElementById('apk-modal-install-btn');
     if(installBtn) installBtn.style.display = deferredPrompt ? 'block' : 'none';
     m.style.display = 'flex';
+    // iPhone / iPad'da darhol iOS yo'riqnomasini ko'rsatamiz
+    if(pwaIsIOS() && !pwaIsStandalone()){
+      const iosBtn = document.getElementById('apk-tab-btn-ios');
+      if(iosBtn) apkSwitchModalTab('ios', iosBtn);
+    }
   }
 
   function closeApkModal(){
@@ -694,14 +903,40 @@
     setTimeout(apkRenderQr, 200);
   }
 
-  // iOS detection — PWA install ko'rsatmalari uchun
+  // iOS detection - PWA install ko'rsatmalari uchun
   function pwaIsIOS(){
-    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const ua = navigator.userAgent || '';
+    if(/iPad|iPhone|iPod/.test(ua) && !window.MSStream) return true;
+    // iPadOS 13+ o'zini "Macintosh" deb ko'rsatadi, lekin sensorli ekranli bo'ladi
+    return /Macintosh/.test(ua) && navigator.maxTouchPoints > 1;
   }
 
   // Brauzer yordamida o'rnatishni tekshirish (Chrome Android)
   function pwaCanInstall(){
     return !!deferredPrompt;
+  }
+
+  // --- iPhone banner: Safari'da "Bosh ekranga qo'shish" eslatmasi ---
+  function pwaInitIosBanner(){
+    try {
+      if(!pwaIsIOS() || pwaIsStandalone()) return;
+      if(sessionStorage.getItem('pwa_banner_dismissed')) return;
+      const banner = document.getElementById('pwa-install-banner');
+      if(!banner) return;
+      const strong = banner.querySelector('.pwa-txt strong');
+      const small = banner.querySelector('.pwa-txt small');
+      const btn = banner.querySelector('.pwa-btn');
+      if(strong) strong.textContent = "Englify'ni iPhone'ga o'rnating";
+      if(small) small.textContent = "Safari → Ulashish → Bosh ekranga qo'shish";
+      if(btn) btn.textContent = "Qanday?";
+      setTimeout(function(){ banner.classList.add('show'); }, 2500);
+    } catch(e){}
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', pwaInitIosBanner);
+  } else {
+    pwaInitIosBanner();
   }
 
   function requireAuth(){

@@ -43,6 +43,11 @@
     // To'liq ekran dashboard — yuqori oq bo'shliq va ortiqcha joy yo'q
     document.body.classList.toggle('dash-mode', view === 'dashboard' || view === 'admin');
 
+    // Google tugmasi faqat login/register ko'ringanda tayyorlanadi
+    if(view === 'login' || view === 'register'){
+      try { if(typeof pwaRenderGoogleButtons === 'function') pwaRenderGoogleButtons(); } catch(e){}
+    }
+
 
     if(view !== 'dashboard') {
       window.scrollTo(0,0);
@@ -108,7 +113,6 @@
     try { if(typeof readingLoadTimer !== 'undefined') clearInterval(readingLoadTimer); } catch(e){}
 
     if(tabId === 'results') updateResultsDisplay();
-    if(tabId === 'vocab') renderVocabCards();
     if(tabId === 'profile'){
       updateCertificateAvailability();
       if(typeof renderCertificates === 'function') renderCertificates();

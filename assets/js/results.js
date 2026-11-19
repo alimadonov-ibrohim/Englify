@@ -11,6 +11,70 @@
     fullexam:  { completed: false, band: 0, pct: 0, score: '', date: '', sections: null, timeUsed: 0 }
   };
 
+  // Admin panelning "Natijalar" bo'limi uchun lokal yozuv (server bilan bir xil)
+  function recordAdminResultsLocal(session){
+    try {
+      const results = JSON.parse(localStorage.getItem('sb_admin_results') || '[]');
+      const list = Array.isArray(results) ? results : [];
+      const email = String(session.email || '').toLowerCase();
+      const today = new Date().toISOString().slice(0, 10);
+      const map = {
+        listening: 'Listening Mock',
+        reading: 'Reading Mock',
+        writing: 'Writing Mock',
+        speaking: 'Speaking Mock',
+        daily: 'Daily Test',
+        battle: 'Battle Mode',
+        fullexam: 'Full Exam'
+      };
+      Object.keys(map).forEach(function(type){
+        const item = testProgress[type];
+        if(!item || !item.completed) return;
+        const existing = list.find(function(r){
+          return String(r.email || '').toLowerCase() === email &&
+            String(r.type || '') === type &&
+            String(r.date || '').slice(0, 10) === today;
+        });
+        const payload = {
+          id: existing ? existing.id : ('res-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7)),
+          student: session.name || session.email || '',
+          email: email,
+          type: type,
+          test: map[type],
+          score: String(item.score || ''),
+          percentage: Number(item.pct) || 0,
+          band: Number(item.band) || 0,
+          date: existing ? new Date().toISOString() : new Date().toISOString()
+        };
+        if(existing) Object.assign(existing, payload);
+        else list.unshift(payload);
+      });
+      localStorage.setItem('sb_admin_results', JSON.stringify(list.slice(0, 1000)));
+    } catch(e){}
+  }
+
+  function syncAdminResultsToServer(){
+    try {
+      if (!localStorage.getItem(TOKEN_KEY)) return;
+      const names = {
+        listening: 'Listening Mock', reading: 'Reading Mock', writing: 'Writing Mock',
+        speaking: 'Speaking Mock', daily: 'Daily Test', battle: 'Battle Mode', fullexam: 'Full Exam'
+      };
+      Object.keys(names).forEach(function(type){
+        const s = testProgress[type];
+        if (s && s.completed) {
+          api('POST', '/api/results', {
+            type: type,
+            test: names[type],
+            score: s.score,
+            percentage: s.pct,
+            band: s.band
+          }).catch(function(){});
+        }
+      });
+    } catch(e){}
+  }
+
   function saveUserProgress(){
     const session = getSession();
     if(!session) return;
@@ -19,23 +83,8 @@
       testProgress,
       earnedCertificates
     }));
-    // Sync latest skill to backend if token exists
-    try {
-      if (localStorage.getItem(TOKEN_KEY)) {
-        ['reading','listening','writing','speaking','daily'].forEach(function(type){
-          const s = testProgress[type];
-          if (s && s.completed) {
-            api('POST', '/api/results', {
-              type: type,
-              test: type + ' Mock',
-              score: s.score,
-              percentage: s.pct,
-              band: s.band
-            }).catch(function(){});
-          }
-        });
-      }
-    } catch(e){}
+    recordAdminResultsLocal(session);
+    syncAdminResultsToServer();
   }
 
   function loadUserProgress(){
@@ -49,6 +98,9 @@
         if(data.earnedCertificates) earnedCertificates = data.earnedCertificates;
       }
     } catch(e){}
+    // Eski progressdagi natijalarni admin panelga ham ko'rsatamiz
+    recordAdminResultsLocal(session);
+    syncAdminResultsToServer();
     updateResultsDisplay();
     renderCertificates();
     updateCertificateAvailability();

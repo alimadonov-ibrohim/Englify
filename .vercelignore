@@ -3,6 +3,7 @@
 .env.*
 backend/.env
 backend/.env.*
+backend/data/
 
 # Node
 node_modules/

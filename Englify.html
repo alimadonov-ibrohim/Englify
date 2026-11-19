@@ -3,11 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="description" content="Ingliz va nemis tillarini bir markazda o'rganing. IELTS, CEFR va Goethe-Zertifikat standartlariga mos ta'lim — xalqaro imkoniyatlarga ochiq yo'l.">
-<title>Englify — Ingliz va Nemis tili markazi</title>
+<meta name="description" content="Ingliz tilini bir markazda o'rganing. IELTS va CEFR standartlariga mos ta'lim — xalqaro imkoniyatlarga ochiq yo'l.">
+<title>Englify — Ingliz  tili markazi</title>
 
 <!-- PWA: Manifest -->
+
+
 <link rel="manifest" href="manifest.json">
+
 <!-- PWA: Theme & Apple -->
 <meta name="theme-color" content="#000000">
 <meta name="color-scheme" content="light dark">
@@ -22,17 +25,32 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Englify">
 <meta name="application-name" content="Englify">
+<meta name="apple-touch-fullscreen" content="yes">
+<meta name="format-detection" content="telephone=no">
 
 <!-- Icons -->
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+<link rel="apple-touch-icon" href="icon-180.png">
 <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
 
+<!-- iPhone / iPad: ochilish (splash) ekranlari -->
+<link rel="apple-touch-startup-image" href="splash/splash-750x1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="splash/splash-828x1792.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="splash/splash-1125x2436.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="splash/splash-1170x2532.png" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="splash/splash-1179x2556.png" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="splash/splash-1206x2622.png" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="splash/splash-1242x2688.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="splash/splash-1284x2778.png" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="splash/splash-1290x2796.png" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="splash/splash-1320x2868.png" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+
 <!-- Open Graph -->
-<meta property="og:title" content="Englify — Ingliz va Nemis tili markazi">
-<meta property="og:description" content="Ikki til, bitta ko'prik — IELTS va Goethe-Zertifikat standartlariga mos ta'lim.">
+<meta property="og:title" content="Englify — Ingliz tili markazi">
+<meta property="og:description" content="Ingliz tili, bitta ko'prik — IELTS standartlariga mos zamonaviy ta'lim.">
 <meta property="og:type" content="website">
 <meta property="og:image" content="icon-512.png">
 
@@ -58,6 +76,7 @@
   <link rel="stylesheet" href="assets/css/nav.css">
   <link rel="stylesheet" href="assets/css/videos.css">
   <link rel="stylesheet" href="assets/css/advice.css">
+  <link rel="stylesheet" href="assets/css/ios-pwa.css">
   <script src="assets/js/vendor/qrcode.js"></script>
 
 </head>
@@ -99,7 +118,7 @@
       </div>
       <button class="btn-login" type="button" onclick="doLogin()">Kirish</button>
       <div class="login-divider"><span>yoki</span></div>
-      <button class="btn-google" type="button" onclick="loginWithGoogle()">
+      <button class="btn-google" type="button" id="google-login-btn" onclick="loginWithGoogle()">
         <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/></svg>
         Google bilan kirish
       </button>
@@ -155,7 +174,7 @@
       </div>
       <button class="btn-login" type="button" onclick="doRegister()">Ro'yxatdan o'tish</button>
       <div class="login-divider"><span>yoki</span></div>
-      <button class="btn-google" type="button" onclick="loginWithGoogle()">
+      <button class="btn-google" type="button" id="google-register-btn" onclick="loginWithGoogle()">
         <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/></svg>
         Google bilan ro'yxatdan o'tish
       </button>
@@ -367,52 +386,12 @@
 
         <!-- 4. LUG'AT BO'LIMI -->
         <div id="vocab" class="panel">
-          <div class="eyebrow">Bilingual Dictionary</div>
-          <h1 style="margin-bottom:12px;">Ingliz &amp; Nemis Tili Lug'ati</h1>
-          <p style="color:var(--ink-soft);font-size:15px;margin-bottom:24px;max-width:560px;">O'zbekcha so'z yozsangiz ham bo'ladi — avval tarjima qilinadi, keyin ingliz/nemis lug'atidan ma'nosi chiqadi. Topilgan so'zlarni "Mening lug'atim"ga saqlab, flashcard bilan o'rganing.</p>
-
-          <!-- 1) QIDIRUV QISMI -->
-          <div style="background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px 24px;margin-bottom:24px;">
-            <div style="font-size:12px;font-weight:800;letter-spacing:.05em;color:var(--ink-soft);margin-bottom:12px;">SO'Z QIDIRISH</div>
-            <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;align-items:center;">
-              <select id="api-lang-select" class="lang-select" style="min-width:150px;">
-                <option value="en">🇬🇧 English</option>
-                <option value="de">🇩🇪 Deutsch</option>
-              </select>
-              <input type="text" id="vocab-search-input" class="vocab-search" placeholder="O'zbekcha, inglizcha yoki nemischa so'z yozing..." style="flex:1;margin-bottom:0;" onkeydown="if(event.key==='Enter')searchDictionaryAPI()">
-              <button class="dash-btn dash-btn-primary" onclick="searchDictionaryAPI()">🔍 Qidirish</button>
-            </div>
-            <div id="api-search-status" style="font-size:13.5px;color:var(--ink-soft);margin-bottom:14px;"></div>
-            <div id="api-results" style="margin-bottom:0;"></div>
-          </div>
-
-          <!-- 2) MENING LUG'ATIM (saqlangan so'zlar) -->
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
-            <div style="font-size:12px;font-weight:800;letter-spacing:.05em;color:var(--ink-soft);">MENING LUG'ATIM</div>
-            <button class="dash-btn dash-btn-outline" style="padding:8px 16px;font-size:13px;" onclick="openAddWordModal()">➕ Yangi so'z qo'shish</button>
-          </div>
-
-          <!-- Flashcard (katta so'z kartasi) -->
-          <div class="vocab-flashcard-box" id="vocab-flashcard-box" onclick="flipFlashcard()" style="display:none;">
-            <div style="font-size:11px;letter-spacing:.08em;opacity:.85;margin-bottom:8px;">FLASHCARD — USTIGA BOSING</div>
-            <div class="vocab-word-large" id="fc-word">—</div>
-            <div style="font-size:13px;opacity:.85;margin-top:4px;" id="fc-phonetic">—</div>
-            <div id="fc-meaning" style="display:none;margin-top:14px;font-size:15px;line-height:1.6;"></div>
-            <div style="margin-top:18px;display:flex;gap:10px;justify-content:center;">
-              <button class="dash-btn dash-btn-outline" style="padding:8px 16px;font-size:13px;background:rgba(255,255,255,0.15);color:#fff;border-color:rgba(255,255,255,0.3);" onclick="event.stopPropagation();speakCurrentWord()">🔊 Talaffuz</button>
-              <button class="dash-btn dash-btn-outline" style="padding:8px 16px;font-size:13px;background:rgba(255,255,255,0.15);color:#fff;border-color:rgba(255,255,255,0.3);" onclick="event.stopPropagation();nextFlashcard()">→ Keyingi</button>
-            </div>
-          </div>
-
-          <!-- Filter pills + countlar -->
-          <div class="filter-pills" style="margin-bottom:18px;">
-            <button class="filter-pill active" onclick="filterVocabLang('all', this)">Barchasi (<span id="count-all">0</span>)</button>
-            <button class="filter-pill" onclick="filterVocabLang('en', this)">🇬🇧 English (<span id="count-en">0</span>)</button>
-            <button class="filter-pill" onclick="filterVocabLang('de', this)">🇩🇪 Deutsch (<span id="count-de">0</span>)</button>
-          </div>
-
-          <!-- Saqlangan so'zlar grid -->
-          <div id="vocab-cards-grid" class="vocab-list"></div>
+          <form class="dict-search" onsubmit="event.preventDefault();searchDictionaryAPI();">
+            <span class="dict-search-icon">🔍</span>
+            <input type="text" id="vocab-search-input" class="dict-search-input" placeholder="So'z qidiring…" autocomplete="off">
+            <button type="submit" class="dict-search-btn" aria-label="Qidirish">→</button>
+          </form>
+          <div id="api-results" class="dict-results"></div>
         </div>
 
         <!-- 5. PROFIL BO'LIMI -->
@@ -464,6 +443,7 @@
               <div class="apk-modal-tabs">
                 <button class="apk-modal-tab active" onclick="apkSwitchModalTab('qr', this)">📷 QR kod</button>
                 <button class="apk-modal-tab" onclick="apkSwitchModalTab('pwa', this)">⚡ PWA</button>
+                <button class="apk-modal-tab" id="apk-tab-btn-ios" onclick="apkSwitchModalTab('ios', this)">🍏 iPhone</button>
                 <button class="apk-modal-tab" onclick="apkSwitchModalTab('manual', this)">📋 Qo'lda</button>
               </div>
               <div class="apk-modal-panel active" id="apk-panel-qr">
@@ -473,13 +453,25 @@
                 <button class="dash-btn dash-btn-primary" style="width:100%;margin-top:12px;padding:11px;font-size:13px;" onclick="apkDownload()">⬇️ Hoziroq yuklab olish</button>
               </div>
               <div class="apk-modal-panel" id="apk-panel-pwa">
-                <p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 10px;line-height:1.55;">Android Chrome yoki iOS Safari'da sahifani <b>"Bosh ekranga qo'shish"</b> orqali ilova sifatida o'rnating:</p>
+                <p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 10px;line-height:1.55;">Android Chrome'da sahifani <b>"Bosh ekranga qo'shish"</b> orqali ilova sifatida o'rnating (iPhone uchun <b>🍏 iPhone</b> bo'limini tanlang):</p>
                 <div class="apk-modal-step"><span class="step-num">1</span><span>Chrome brauzerida sahifani oching → uch nuqta <b>⋮</b> tugmasini bosing</span></div>
                 <div class="apk-modal-step"><span class="step-num">2</span><span><b>"Bosh ekranga qo'shish"</b> yoki <b>"Add to Home screen"</b> ni tanlang</span></div>
                 <div class="apk-modal-step"><span class="step-num">3</span><span>Tasdiqlang — ilova telefoningizda icon bilan paydo bo'ladi</span></div>
                 <div class="apk-modal-step"><span class="step-num">4</span><span>Ilovani oching — <b>offline ishlaydi</b>, internet kerak emas!</span></div>
                 <button class="dash-btn dash-btn-primary" id="apk-modal-install-btn" style="width:100%;margin-top:14px;padding:11px;font-size:13px;display:none;" onclick="pwaInstallNow()">⚡ Hoziroq o'rnatish</button>
                 <div id="apk-modal-install-note" style="font-size:11.5px;color:var(--ink-soft);margin-top:10px;text-align:center;line-height:1.5;">Brauzeringiz avtomatik o'rnatishni qo'llab-quvvatlasa, tugma yuqorida paydo bo'ladi</div>
+              </div>
+              <div class="apk-modal-panel" id="apk-panel-ios">
+                <p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 10px;line-height:1.55;">iPhone yoki iPad'da ilovani <b>Safari</b> brauzeri orqali bosh ekranga qo'shing:</p>
+                <div class="apk-modal-step"><span class="step-num">1</span><span>Sahifani <b>Safari</b>da oching (Telegram/Instagram ichidagi brauzerda emas)</span></div>
+                <div class="apk-modal-step"><span class="step-num">2</span><span>Pastdagi <b>Ulashish</b> tugmasini bosing — <b>⬆️</b> belgisi</span></div>
+                <div class="apk-modal-step"><span class="step-num">3</span><span>Ro'yxatdan <b>"Bosh ekranga qo'shish"</b> / <b>"Add to Home Screen"</b> ni tanlang</span></div>
+                <div class="apk-modal-step"><span class="step-num">4</span><span>Yuqori o'ngdagi <b>"Qo'shish"</b> tugmasini bosing</span></div>
+                <div class="apk-modal-step"><span class="step-num">5</span><span>Bosh ekranda <b>Englify</b> ikonkasi paydo bo'ladi — oching, <b>offline ishlaydi!</b></span></div>
+                <div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.3);border-radius:12px;padding:12px 14px;font-size:12.5px;color:#15803d;line-height:1.6;text-align:center;margin-top:12px;">
+                  📲 Ilova to'liq ekranda, internet bo'lmasa ham ochiladi
+                </div>
+                <button class="dash-btn dash-btn-outline" style="width:100%;margin-top:12px;padding:11px;font-size:13px;" onclick="apkCopyCurrentUrl()">📋 Havolani nusxalash</button>
               </div>
               <div class="apk-modal-panel" id="apk-panel-manual">
                 <p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 10px;line-height:1.55;">HTML faylni to'g'ridan-to'g'ri yuklab olish:</p>
@@ -596,16 +588,6 @@
                     </div>
                   </div>
                   <button id="cert-btn-ielts" class="dash-btn" style="padding:10px 18px;font-size:13px;white-space:nowrap;background:#94a3b8;color:#fff;cursor:not-allowed;" disabled onclick="requestCertificate('ielts')">🔒 Yopiq</button>
-                </div>
-                <div id="cert-card-goethe" style="border:1px solid var(--line);border-radius:14px;padding:18px 20px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;opacity:0.55;filter:grayscale(0.4);">
-                  <div style="display:flex;align-items:center;gap:14px;">
-                    <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#0f9aa8,#0e7c86);color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🏅</div>
-                    <div>
-                      <div style="font-weight:700;font-size:15px;">Goethe-Zertifikat (B1)</div>
-                      <div style="font-size:13px;color:var(--ink-soft);margin-top:2px;" id="cert-req-goethe">🔒 Kamida 3 ta mock test + Daily</div>
-                    </div>
-                  </div>
-                  <button id="cert-btn-goethe" class="dash-btn" style="padding:10px 18px;font-size:13px;white-space:nowrap;background:#94a3b8;color:#fff;cursor:not-allowed;" disabled onclick="requestCertificate('goethe')">🔒 Yopiq</button>
                 </div>
                 <div id="cert-card-course" style="border:1px solid var(--line);border-radius:14px;padding:18px 20px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;opacity:0.55;filter:grayscale(0.4);">
                   <div style="display:flex;align-items:center;gap:14px;">
@@ -730,54 +712,24 @@
   </div>
 </div>
 
-<!-- MODAL: YANGI SO'Z QO'SHISH -->
-<div id="modal-add-word" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(14,32,56,0.6);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center;padding:20px;">
-  <div style="background:var(--card);border-radius:18px;max-width:480px;width:100%;padding:28px;position:relative;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-      <h3 style="font-family:'Fraunces',serif;font-size:20px;">Yangi So'z Qo'shish</h3>
-      <button onclick="closeModal('modal-add-word')" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--ink-soft);">&times;</button>
-    </div>
-    <form onsubmit="submitNewWord(event)">
-      <div style="margin-bottom:12px;">
-        <label style="font-size:13px;font-weight:700;display:block;margin-bottom:4px;">So'z</label>
-        <input type="text" id="new-word-text" placeholder="Masalan: Diligent" required style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;">
-      </div>
-      <div style="margin-bottom:12px;">
-        <label style="font-size:13px;font-weight:700;display:block;margin-bottom:4px;">Til</label>
-        <select id="new-word-lang" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;">
-          <option value="en">Ingliz tili</option>
-          <option value="de">Nemis tili</option>
-        </select>
-      </div>
-      <div style="margin-bottom:12px;">
-        <label style="font-size:13px;font-weight:700;display:block;margin-bottom:4px;">Ma'nosi</label>
-        <input type="text" id="new-word-meaning" placeholder="Tirishqoq, tirishqoqlik bilan ishlovchi" required style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;">
-      </div>
-      <div style="margin-bottom:18px;">
-        <label style="font-size:13px;font-weight:700;display:block;margin-bottom:4px;">Misol Gap</label>
-        <input type="text" id="new-word-example" placeholder="She is a diligent student." style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;">
-      </div>
-      <button type="submit" class="dash-btn dash-btn-primary" style="width:100%;">Saqlash</button>
-    </form>
-  </div>
-</div>
-
-
 <!-- ===================== ADMIN PANEL (bitta fayl) ===================== -->
 <section id="view-admin" style="display:none;min-height:100vh;background:var(--paper);">
   <div style="display:flex;min-height:100vh;">
     <aside id="admin-sidebar" style="width:250px;border-right:1px solid var(--line);background:var(--card);padding:20px 14px;display:flex;flex-direction:column;flex-shrink:0;">
       <div style="display:flex;align-items:center;gap:8px;padding:8px 10px 18px;cursor:pointer;" onclick="showView('home')"><div class="brand-logo" style="width:30px;height:30px;"></div><span class="brand-name" style="font-family:'Fraunces',serif;font-weight:600;font-size:18px;">Englify</span><span style="font-size:12px;color:var(--ink-soft);">Admin</span></div>
-      <nav style="display:flex;flex-direction:column;gap:4px;flex:1;">
+      <nav style="display:flex;flex-direction:column;gap:4px;flex:1;min-height:0;overflow-y:auto;">
         <a href="#" class="dash-nav-link active" data-ap="dash" onclick="adminShow('dash');return false;"><span class="admin-nav-ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.2c.3 0 .6.1.84.29l7.5 5.9c.36.28.57.71.57 1.17V19a2.5 2.5 0 0 1-2.5 2.5h-3.66a1.1 1.1 0 0 1-1.1-1.1v-5.15a1.65 1.65 0 0 0-3.3 0v5.15a1.1 1.1 0 0 1-1.1 1.1H5.59A2.5 2.5 0 0 1 3.09 19v-8.44c0-.46.21-.89.57-1.17l7.5-5.9c.24-.19.54-.29.84-.29z"/></svg></span>Dashboard</a>
         <a href="#" class="dash-nav-link" data-ap="ai" onclick="adminShow('ai');return false;"><span class="admin-nav-ic ani-purple"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8L12 2z"/></svg></span>AI Admin</a>
         <a href="#" class="dash-nav-link" data-ap="users" onclick="adminShow('users');return false;"><span class="admin-nav-ic ani-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 19c0-3 2.7-5 6-5s6 2 6 5"/><path d="M16 5.2a3 3 0 0 1 0 5.6M17.5 14.3c2.1.5 3.5 2.1 3.5 4.2"/></svg></span>Foydalanuvchilar</a>
         <a href="#" class="dash-nav-link" data-ap="courses" onclick="adminShow('courses');return false;"><span class="admin-nav-ic ani-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 7.5 12 12l9-4.5L12 3z"/><path d="M3 12l9 4.5 9-4.5M3 16.5 12 21l9-4.5"/></svg></span>Kurslar</a>
         <a href="#" class="dash-nav-link" data-ap="tests" onclick="adminShow('tests');return false;"><span class="admin-nav-ic ani-indigo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2.5"/><path d="M9 4.5V3h6v1.5M9 11h6M9 15h4"/></svg></span>Testlar</a>
         <a href="#" class="dash-nav-link" data-ap="results" onclick="adminShow('results');return false;"><span class="admin-nav-ic ani-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 20v-6M12 20V8M18 20V4"/></svg></span>Natijalar</a>
+        <a href="#" class="dash-nav-link" data-ap="stats" onclick="adminShow('stats');return false;"><span class="admin-nav-ic ani-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>Statistika</a>
         <a href="#" class="dash-nav-link" data-ap="dict" onclick="adminShow('dict');return false;"><span class="admin-nav-ic ani-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.4C10.4 5.1 8.2 4.5 4.5 4.5v13c3.7 0 5.9.6 7.5 1.9 1.6-1.3 3.8-1.9 7.5-1.9v-13c-3.7 0-5.9.6-7.5 1.9z"/><path d="M12 6.4v13"/></svg></span>Lug‘at</a>
         <a href="#" class="dash-nav-link" data-ap="notif" onclick="adminShow('notif');return false;"><span class="admin-nav-ic ani-red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8.5a6 6 0 1 0-12 0c0 4.5-2 5.8-2 5.8h16s-2-1.3-2-5.8"/><path d="M10.2 19.5a2 2 0 0 0 3.6 0"/></svg></span>Bildirishnomalar</a>
         <a href="#" class="dash-nav-link" data-ap="certs" onclick="adminShow('certs');return false;"><span class="admin-nav-ic ani-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.5 13l1.5 8-5-3-5 3 1.5-8"/></svg></span>Sertifikatlar</a>
+        <a href="#" class="dash-nav-link" data-ap="admins" onclick="adminShow('admins');return false;"><span class="admin-nav-ic ani-indigo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7.5 3v5.5c0 4.4-3.1 8.2-7.5 9.5-4.4-1.3-7.5-5.1-7.5-9.5V6L12 3z"/><path d="M9 12l2 2 4-4"/></svg></span>Adminlar</a>
+        <a href="#" class="dash-nav-link" data-ap="backup" onclick="adminShow('backup');return false;"><span class="admin-nav-ic ani-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5.5" rx="7.5" ry="3"/><path d="M4.5 5.5v13c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3v-13"/><path d="M4.5 12c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3"/></svg></span>Zaxira nusxa</a>
         <a href="#" class="dash-nav-link" data-ap="settings" onclick="adminShow('settings');return false;"><span class="admin-nav-ic ani-gray"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>Sozlamalar</a>
         <a href="#" class="dash-nav-link" data-ap="logs" onclick="adminShow('logs');return false;"><span class="admin-nav-ic ani-gray"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="4" cy="6" r="1.2" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1.2" fill="currentColor" stroke="none"/></svg></span>Loglar</a>
       </nav>
@@ -797,6 +749,18 @@
     </div>
   </div>
 </section>
+
+<!-- Google bilan kirish (rasmiy Google tugmasi uchun zaxira modal) -->
+<div class="apk-modal" id="google-auth-modal" style="display:none;" onclick="if(event.target===this) pwaCloseGoogleModal()">
+  <div class="apk-modal-box">
+    <button class="apk-modal-close" onclick="pwaCloseGoogleModal()">✕</button>
+    <h3 style="font-size:17px;font-weight:800;margin:0 0 6px;">🔐 Google bilan kirish</h3>
+    <p style="font-size:13px;color:var(--ink-soft);margin:0 0 14px;line-height:1.55;">Google hisobingizni tanlang — parol kiritish shart emas.</p>
+    <div id="google-modal-slot" style="display:flex;justify-content:center;min-height:44px;"></div>
+    <div id="google-modal-status" style="font-size:12px;color:var(--ink-soft);margin-top:10px;line-height:1.5;"></div>
+    <button class="dash-btn dash-btn-outline" style="width:100%;margin-top:14px;padding:11px;font-size:13px;" onclick="pwaCloseGoogleModal()">Bekor qilish</button>
+  </div>
+</div>
 
 <!-- PWA Install Banner (Android Chrome) -->
 <div class="pwa-install-banner" id="pwa-install-banner">

@@ -332,7 +332,7 @@
         messages: history,
         level: 'B2',
         images: payloadImages
-      }, 90000);
+      }, 60000);
       if(seq !== adviceState.seq) return;
       const reply = String((data && data.reply) || '').trim();
       if(!reply) throw new Error('AI bo‘sh javob qaytardi');

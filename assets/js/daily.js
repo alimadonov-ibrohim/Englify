@@ -25,7 +25,7 @@
     {type:"reading", passage:"Scientists say that bees are very important for nature. They carry pollen from flower to flower, which helps plants produce fruit and seeds.", q:"What do bees help plants produce?", opts:["Water and air","Fruit and seeds","Honey only","Leaves"], ans:1},
     // GAP TO'LDIRISH (8)
     {type:"sentence", q:"We ___ dinner when the guests arrived.", opts:["cooked","were cooking","cook","have cook"], ans:1},
-    {type:"sentence", q:"He is interested ___ learning German.", opts:["in","on","at","for"], ans:0},
+    {type:"sentence", q:"He is interested ___ learning English.", opts:["in","on","at","for"], ans:0},
     {type:"sentence", q:"The book ___ I bought yesterday is amazing.", opts:["who","which","what","whose"], ans:1},
     {type:"sentence", q:"I'd rather ___ at home tonight.", opts:["to stay","stay","staying","stayed"], ans:1},
     {type:"sentence", q:"She has been working here ___ five years.", opts:["since","for","during","from"], ans:1},

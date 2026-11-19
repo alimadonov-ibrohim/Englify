@@ -15,6 +15,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 const ROOT = path.resolve(__dirname, '..');
 const PORT = Number(process.env.PORT || 8000);
@@ -49,6 +50,11 @@ const GEMINI_TTS_FALLBACK_MODEL = process.env.GEMINI_TTS_FALLBACK_MODEL || 'gemi
 const GEMINI_TTS_VOICE = process.env.GEMINI_TTS_VOICE || 'Kore';
 const TTS_MAX_CHARS = 2200;
 let geminiActiveModel = '';
+// Band/quota tugagan modelni bir necha daqiqa o'tkazib yuborish uchun.
+// Aks holda har bir so'rov avval ishlamaydigan modelga urunib, 10-30s yo'qotadi.
+let geminiDegradedModel = '';
+let geminiDegradedUntil = 0;
+const GEMINI_DEGRADE_MS = 10 * 60 * 1000;
 
 function activeProvider() {
   if (AI_PROVIDER === 'mock') return 'mock';
@@ -109,7 +115,7 @@ function setCors(req, res) {
     if (ok) res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Vary', 'Origin');
   }
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Access-Control-Max-Age', '86400');
 }
@@ -170,6 +176,683 @@ function rateAllowed(ip) {
   return win.count <= 60;
 }
 
+/* ==========================================================================
+ * FOYDALANUVCHILAR + NATIJALAR (shared store)
+ * --------------------------------------------------------------------------
+ * Lokal serverda:  backend/data/store.json
+ * Vercel'da:       /tmp/englify-data/store.json (warm instance)
+ * Doimiy (ixtiyoriy): Upstash / Vercel KV REST (UPSTASH_REDIS_REST_URL + TOKEN
+ *                    yoki KV_REST_API_URL + KV_REST_API_TOKEN)
+ * Admin panel shu API orqali barcha qurilmalarda ro'yxatdan o'tgan
+ * foydalanuvchilarni ko'radi. API hech qachon parolni qaytarmaydi.
+ * ========================================================================== */
+const DEFAULT_ADMIN_EMAILS = ['alimardonovio11@gmail.com', 'admin@englify.uz'];
+const ADMIN_EMAILS = String(process.env.ADMIN_EMAILS || DEFAULT_ADMIN_EMAILS.join(','))
+  .split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+
+/* ---------- Google bilan kirish (haqiqiy OAuth) ---------- */
+// Google Cloud Console → APIs & Services → Credentials → OAuth 2.0 Client ID (Web).
+// Bir nechta Client ID kerak bo'lsa vergul bilan yozing: GOOGLE_CLIENT_ID=id1,id2
+const GOOGLE_CLIENT_IDS = String(process.env.GOOGLE_CLIENT_IDS || process.env.GOOGLE_CLIENT_ID || '')
+  .split(',').map(s => s.trim()).filter(Boolean);
+const GOOGLE_CLIENT_ID = GOOGLE_CLIENT_IDS[0] || '';
+const GOOGLE_CERTS_URL = process.env.GOOGLE_CERTS_URL || 'https://www.googleapis.com/oauth2/v3/certs';
+
+const DATA_ROOT = process.env.VERCEL
+  ? path.join(require('os').tmpdir(), 'englify-data')
+  : path.join(__dirname, 'data');
+const STORE_FILE = path.join(DATA_ROOT, 'store.json');
+const MAX_STORED_RESULTS = 5000;
+let storeCache = null;
+let storeCacheAt = 0;
+let authSecretCache = '';
+
+function isAdminEmailServer(email) {
+  return ADMIN_EMAILS.includes(String(email || '').trim().toLowerCase());
+}
+
+function redisCreds() {
+  const url = String(process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL || '').replace(/\/+$/, '');
+  const token = String(process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN || '');
+  return (url && token) ? { url, token } : null;
+}
+
+function emptyStore() {
+  return { version: 1, users: {}, results: [] };
+}
+
+function normalizeStore(raw) {
+  const store = emptyStore();
+  if (!raw || typeof raw !== 'object') return store;
+  if (raw.users && typeof raw.users === 'object') store.users = raw.users;
+  if (Array.isArray(raw.results)) store.results = raw.results.slice(0, MAX_STORED_RESULTS);
+  return store;
+}
+
+async function loadStore() {
+  const redis = redisCreds();
+  if (redis) {
+    try {
+      const res = await fetch(redis.url + '/get/englify:store', {
+        headers: { Authorization: 'Bearer ' + redis.token }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const text = data && data.result;
+        if (!text) return emptyStore();
+        return normalizeStore(typeof text === 'string' ? JSON.parse(text) : text);
+      }
+    } catch (e) {
+      console.warn('[store] Redis read failed:', e.message);
+    }
+  }
+  if (storeCache && (Date.now() - storeCacheAt) < 1500) return storeCache;
+  try {
+    if (fs.existsSync(STORE_FILE)) {
+      storeCache = normalizeStore(JSON.parse(fs.readFileSync(STORE_FILE, 'utf8') || '{}'));
+    } else {
+      storeCache = emptyStore();
+    }
+  } catch (e) {
+    console.warn('[store] read failed:', e.message);
+    storeCache = emptyStore();
+  }
+  storeCacheAt = Date.now();
+  return storeCache;
+}
+
+async function saveStore(store) {
+  storeCache = store;
+  storeCacheAt = Date.now();
+  const redis = redisCreds();
+  if (redis) {
+    try {
+      const res = await fetch(redis.url + '/set/englify:store', {
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer ' + redis.token,
+          'Content-Type': 'text/plain'
+        },
+        body: JSON.stringify(store)
+      });
+      if (res.ok) return;
+      console.warn('[store] Redis write HTTP', res.status);
+    } catch (e) {
+      console.warn('[store] Redis write failed:', e.message);
+    }
+  }
+  try {
+    fs.mkdirSync(DATA_ROOT, { recursive: true });
+    fs.writeFileSync(STORE_FILE, JSON.stringify(store, null, 2));
+  } catch (e) {
+    console.warn('[store] write failed:', e.message);
+  }
+}
+
+function authSecret() {
+  if (authSecretCache) return authSecretCache;
+  if (process.env.AUTH_SECRET) {
+    authSecretCache = String(process.env.AUTH_SECRET);
+    return authSecretCache;
+  }
+  // Redis/KV sozlangan bo'lsa — barcha instance'lar uchun bir xil maxfiy kalit.
+  // (KV tokenining o'zi maxfiy, shuning uchun undan HMAC hosil qilamiz.)
+  const redis = redisCreds();
+  if (redis) {
+    authSecretCache = crypto.createHmac('sha256', redis.token)
+      .update('englify-auth-secret:' + redis.url)
+      .digest('hex');
+    return authSecretCache;
+  }
+  try {
+    const file = path.join(DATA_ROOT, 'auth-secret.key');
+    if (fs.existsSync(file)) {
+      authSecretCache = fs.readFileSync(file, 'utf8').trim();
+    }
+    if (!authSecretCache) {
+      fs.mkdirSync(DATA_ROOT, { recursive: true });
+      authSecretCache = crypto.randomBytes(32).toString('hex');
+      fs.writeFileSync(file, authSecretCache);
+    }
+  } catch (e) {
+    authSecretCache = crypto.randomBytes(32).toString('hex');
+  }
+  return authSecretCache;
+}
+
+function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.scryptSync(String(password), salt, 32).toString('hex');
+  return 'scrypt$' + salt + '$' + hash;
+}
+
+function verifyPassword(password, stored) {
+  const value = String(stored || '');
+  if (value.indexOf('scrypt$') === 0) {
+    const parts = value.split('$');
+    if (parts.length !== 3) return false;
+    try {
+      const calc = crypto.scryptSync(String(password), parts[1], 32).toString('hex');
+      const a = Buffer.from(calc, 'hex');
+      const b = Buffer.from(parts[2], 'hex');
+      return a.length === b.length && crypto.timingSafeEqual(a, b);
+    } catch (e) { return false; }
+  }
+  // Eski oddiy parollar (server ularni hech qachon yozmaydi)
+  return !!value && value === String(password);
+}
+
+function signToken(email, role, days) {
+  const payload = {
+    sub: String(email).toLowerCase(),
+    role: role || 'user',
+    iat: Date.now(),
+    exp: Date.now() + (days || 7) * 24 * 60 * 60 * 1000
+  };
+  const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
+  const sig = crypto.createHmac('sha256', authSecret()).update(body).digest('base64url');
+  return body + '.' + sig;
+}
+
+function verifyToken(token) {
+  try {
+    const parts = String(token || '').split('.');
+    if (parts.length !== 2 || !parts[0] || !parts[1]) return null;
+    const expect = crypto.createHmac('sha256', authSecret()).update(parts[0]).digest('base64url');
+    const a = Buffer.from(parts[1]);
+    const b = Buffer.from(expect);
+    if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
+    const payload = JSON.parse(Buffer.from(parts[0], 'base64url').toString('utf8'));
+    if (!payload || !payload.sub) return null;
+    if (payload.exp && payload.exp < Date.now()) return null;
+    return payload;
+  } catch (e) {
+    return null;
+  }
+}
+
+/* ---------- Google ID tokenini tekshirish (haqiqiy OAuth) ---------- */
+let googleKeysCache = { at: 0, keys: {} };
+
+function googleAuthError(status, message) {
+  const err = new Error(message);
+  err.status = status;
+  return err;
+}
+
+async function fetchJsonTimeout(url, timeoutMs) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(function () { try { ctrl.abort(); } catch (e) {} }, timeoutMs || 8000);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal });
+    let data = null;
+    try { data = await res.json(); } catch (e) { data = null; }
+    if (!res.ok) {
+      const msg = (data && (data.error_description || data.error)) || ('Google HTTP ' + res.status);
+      throw googleAuthError(401, 'Google tokenini tekshirib bo‘lmadi: ' + msg);
+    }
+    return data || {};
+  } catch (err) {
+    if (err && err.status) throw err;
+    const netErr = googleAuthError(503, 'Google serveriga ulanib bo‘lmadi.');
+    netErr.network = true;
+    throw netErr;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function googlePublicKeys(force) {
+  const now = Date.now();
+  if (!force && googleKeysCache.at && (now - googleKeysCache.at) < 60 * 60 * 1000 &&
+      Object.keys(googleKeysCache.keys).length) {
+    return googleKeysCache.keys;
+  }
+  const data = await fetchJsonTimeout(GOOGLE_CERTS_URL, 8000);
+  const keys = {};
+  (data.keys || []).forEach(function (key) {
+    if (key && key.kid) keys[key.kid] = key;
+  });
+  if (!Object.keys(keys).length) {
+    const err = googleAuthError(503, 'Google kalitlari topilmadi.');
+    err.network = true;
+    throw err;
+  }
+  googleKeysCache = { at: now, keys: keys };
+  return keys;
+}
+
+function decodeJwtPart(part) {
+  return JSON.parse(Buffer.from(String(part || ''), 'base64url').toString('utf8'));
+}
+
+async function verifyGoogleJwtLocal(token) {
+  const parts = String(token || '').split('.');
+  if (parts.length !== 3 || !parts[0] || !parts[1] || !parts[2]) {
+    throw googleAuthError(401, 'Google token formati noto‘g‘ri.');
+  }
+  let header, payload;
+  try {
+    header = decodeJwtPart(parts[0]);
+    payload = decodeJwtPart(parts[1]);
+  } catch (e) {
+    throw googleAuthError(401, 'Google tokenini o‘qib bo‘lmadi.');
+  }
+  if (!header || header.alg !== 'RS256' || !header.kid) {
+    throw googleAuthError(401, 'Google token imzosi qo‘llab-quvvatlanmaydi.');
+  }
+  let keys = await googlePublicKeys(false);
+  let jwk = keys[header.kid];
+  if (!jwk) {
+    keys = await googlePublicKeys(true);
+    jwk = keys[header.kid];
+  }
+  if (!jwk) throw googleAuthError(401, 'Google token kaliti topilmadi.');
+  let verified = false;
+  try {
+    const publicKey = crypto.createPublicKey({ key: jwk, format: 'jwk' });
+    verified = crypto.verify(
+      'RSA-SHA256',
+      Buffer.from(parts[0] + '.' + parts[1], 'utf8'),
+      publicKey,
+      Buffer.from(parts[2], 'base64url')
+    );
+  } catch (e) {
+    throw googleAuthError(401, 'Google token imzosini tekshirib bo‘lmadi.');
+  }
+  if (!verified) throw googleAuthError(401, 'Google token imzosi noto‘g‘ri.');
+  return payload;
+}
+
+async function verifyGoogleTokenInfo(token) {
+  return fetchJsonTimeout(
+    'https://oauth2.googleapis.com/tokeninfo?id_token=' + encodeURIComponent(token),
+    8000
+  );
+}
+
+function validateGooglePayload(payload) {
+  if (!payload || typeof payload !== 'object') {
+    throw googleAuthError(401, 'Google token ma’lumoti bo‘sh.');
+  }
+  if (!GOOGLE_CLIENT_IDS.length) {
+    throw googleAuthError(503, 'Google kirish serverda sozlanmagan (GOOGLE_CLIENT_ID).');
+  }
+  const aud = String(payload.aud || '');
+  if (!aud || GOOGLE_CLIENT_IDS.indexOf(aud) < 0) {
+    throw googleAuthError(401, 'Google Client ID mos kelmadi.');
+  }
+  const iss = String(payload.iss || '');
+  if (iss !== 'accounts.google.com' && iss !== 'https://accounts.google.com') {
+    throw googleAuthError(401, 'Google token manbasi noto‘g‘ri.');
+  }
+  const exp = Number(payload.exp || 0);
+  if (!exp || exp * 1000 < (Date.now() - 60 * 1000)) {
+    throw googleAuthError(401, 'Google token muddati tugagan. Qayta kiring.');
+  }
+  const email = cleanEmail(payload.email);
+  if (!validEmail(email)) {
+    throw googleAuthError(401, 'Google hisobida email topilmadi.');
+  }
+  const emailVerified = payload.email_verified === true || String(payload.email_verified) === 'true';
+  if (!emailVerified) {
+    throw googleAuthError(401, 'Google email tasdiqlanmagan.');
+  }
+  if (!payload.sub) {
+    throw googleAuthError(401, 'Google hisob identifikatori topilmadi.');
+  }
+  return {
+    sub: String(payload.sub),
+    email: email,
+    name: String(payload.name || payload.given_name || '').trim().slice(0, 120),
+    picture: String(payload.picture || ''),
+    emailVerified: true
+  };
+}
+
+async function verifyGoogleCredential(credential) {
+  const token = String(credential || '').trim();
+  if (!token) throw googleAuthError(400, 'Google credential kerak.');
+  if (token.length > 8192) throw googleAuthError(400, 'Google credential juda uzun.');
+  let payload;
+  try {
+    payload = await verifyGoogleJwtLocal(token);
+  } catch (err) {
+    if (err && err.network) {
+      // Google sertifikatlariga yetib bo‘lmasa — zaxira tekshiruv.
+      payload = await verifyGoogleTokenInfo(token);
+    } else {
+      throw err;
+    }
+  }
+  return validateGooglePayload(payload);
+}
+
+function requestToken(req) {
+  const header = String((req && req.headers && req.headers.authorization) || '');
+  const match = header.match(/^Bearer\s+(.+)$/i);
+  return match ? match[1].trim() : '';
+}
+
+function requestAuth(req) {
+  return verifyToken(requestToken(req));
+}
+
+function publicUser(user) {
+  if (!user) return null;
+  const email = String(user.email || '').toLowerCase();
+  return {
+    name: String(user.name || ''),
+    email: email,
+    phone: String(user.phone || ''),
+    role: isAdminEmailServer(email) ? 'admin' : String(user.role || 'user'),
+    status: String(user.status || 'active'),
+    provider: String(user.provider || 'password'),
+    google: !!user.google,
+    picture: String(user.picture || ''),
+    createdAt: String(user.createdAt || ''),
+    lastLoginAt: String(user.lastLoginAt || '')
+  };
+}
+
+function cleanEmail(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function validEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || ''));
+}
+
+function authResponse(user) {
+  const safe = publicUser(user);
+  const role = safe.role;
+  return {
+    user: safe,
+    access: signToken(safe.email, role, 7),
+    refresh: signToken(safe.email, role, 30),
+    tokenType: 'Bearer'
+  };
+}
+
+async function requireAdmin(req, res) {
+  const auth = requestAuth(req);
+  if (!auth) {
+    sendJSON(res, 401, { detail: 'Avval tizimga kiring.' });
+    return null;
+  }
+  const store = await loadStore();
+  const user = store.users[auth.sub];
+  if (!user) {
+    sendJSON(res, 401, { detail: 'Hisob topilmadi. Qayta kiring.' });
+    return null;
+  }
+  if (String(user.status || 'active') === 'blocked') {
+    sendJSON(res, 403, { detail: 'Bu hisob bloklangan.' });
+    return null;
+  }
+  const role = isAdminEmailServer(auth.sub) ? 'admin' : String(user.role || 'user');
+  if (role !== 'admin') {
+    sendJSON(res, 403, { detail: 'Faqat admin uchun.' });
+    return null;
+  }
+  return { auth: auth, user: user, store: store };
+}
+
+async function handleAuth(req, res, url) {
+  /* ----- Google sozlamasi (client ID ommaviy, maxfiy emas) ----- */
+  if (url === '/api/auth/config' && req.method === 'GET') {
+    return sendJSON(res, 200, {
+      googleEnabled: !!GOOGLE_CLIENT_ID,
+      googleClientId: GOOGLE_CLIENT_ID,
+      provider: 'google'
+    });
+  }
+
+  /* ----- Register ----- */
+  if (url === '/api/auth/register' && req.method === 'POST') {
+    const body = await readBody(req, 40000);
+    const name = String(body.name || '').trim().slice(0, 120);
+    const email = cleanEmail(body.email);
+    const phone = String(body.phone || '').trim().slice(0, 40);
+    const password = String(body.password || '');
+
+    if (name.length < 2) return sendJSON(res, 400, { detail: 'Ism va familiyani kiriting.' });
+    if (!validEmail(email)) return sendJSON(res, 400, { detail: "To'g'ri email manzilini kiriting." });
+    if (password.length < 6) return sendJSON(res, 400, { detail: "Parol kamida 6 ta belgidan iborat bo'lishi kerak." });
+
+    const store = await loadStore();
+    if (store.users[email]) {
+      return sendJSON(res, 400, { detail: "Bu email allaqachon ro'yxatdan o'tgan. Kirish bo'limidan foydalaning." });
+    }
+
+    const now = new Date().toISOString();
+    store.users[email] = {
+      name: name,
+      email: email,
+      phone: phone,
+      passwordHash: hashPassword(password),
+      role: isAdminEmailServer(email) ? 'admin' : 'user',
+      status: 'active',
+      provider: 'password',
+      createdAt: now,
+      lastLoginAt: now
+    };
+    await saveStore(store);
+    return sendJSON(res, 201, authResponse(store.users[email]));
+  }
+
+  /* ----- Login ----- */
+  if (url === '/api/auth/login' && req.method === 'POST') {
+    const body = await readBody(req, 40000);
+    const email = cleanEmail(body.email);
+    const password = String(body.password || '');
+    if (!validEmail(email)) return sendJSON(res, 400, { detail: "To'g'ri email manzilini kiriting." });
+    if (!password) return sendJSON(res, 400, { detail: 'Parolni kiriting.' });
+
+    const store = await loadStore();
+    const user = store.users[email];
+    if (!user || !verifyPassword(password, user.passwordHash)) {
+      return sendJSON(res, 401, { detail: "Email yoki parol noto'g'ri." });
+    }
+    if (String(user.status || 'active') === 'blocked') {
+      return sendJSON(res, 403, { detail: 'Bu hisob bloklangan. Admin bilan bog‘laning.' });
+    }
+    user.lastLoginAt = new Date().toISOString();
+    await saveStore(store);
+    return sendJSON(res, 200, authResponse(user));
+  }
+
+  /* ----- Google bilan kirish / ro'yxatdan o'tish ----- */
+  if (url === '/api/auth/google' && req.method === 'POST') {
+    const body = await readBody(req, 40000);
+    const info = await verifyGoogleCredential(body.credential);
+    const email = cleanEmail(info.email);
+
+    const store = await loadStore();
+    let user = store.users[email];
+    if (user && String(user.status || 'active') === 'blocked') {
+      return sendJSON(res, 403, { detail: 'Bu hisob bloklangan. Admin bilan bog‘laning.' });
+    }
+
+    const now = new Date().toISOString();
+    if (!user) {
+      user = {
+        name: info.name || email.split('@')[0],
+        email: email,
+        phone: '',
+        passwordHash: '',
+        role: isAdminEmailServer(email) ? 'admin' : 'user',
+        status: 'active',
+        provider: 'google',
+        google: true,
+        googleId: info.sub,
+        picture: info.picture || '',
+        emailVerified: true,
+        createdAt: now,
+        lastLoginAt: now
+      };
+      store.users[email] = user;
+    } else {
+      user.lastLoginAt = now;
+      user.google = true;
+      user.googleId = info.sub;
+      user.emailVerified = true;
+      if (info.picture) user.picture = info.picture;
+      if (!user.name && info.name) user.name = info.name;
+      if (!user.provider) user.provider = 'google';
+      if (isAdminEmailServer(email)) user.role = 'admin';
+    }
+
+    await saveStore(store);
+    return sendJSON(res, 200, authResponse(user));
+  }
+
+  /* ----- Me ----- */
+  if (url === '/api/auth/me' && req.method === 'GET') {
+    const auth = requestAuth(req);
+    if (!auth) return sendJSON(res, 401, { detail: 'Token yaroqsiz.' });
+    const store = await loadStore();
+    const user = store.users[auth.sub];
+    if (!user) return sendJSON(res, 401, { detail: 'Hisob topilmadi.' });
+    return sendJSON(res, 200, { user: publicUser(user) });
+  }
+
+  /* ----- Admin: barcha foydalanuvchilar ----- */
+  if (url === '/api/auth/users' && req.method === 'GET') {
+    const admin = await requireAdmin(req, res);
+    if (!admin) return;
+    const users = Object.keys(admin.store.users)
+      .map(function (key) {
+        const user = admin.store.users[key];
+        return publicUser(Object.assign({}, user, { email: user.email || key }));
+      })
+      .sort(function (a, b) { return String(b.createdAt).localeCompare(String(a.createdAt)); });
+    return sendJSON(res, 200, { users: users, total: users.length });
+  }
+
+  /* ----- Admin: foydalanuvchini yangilash (rol / holat / ism) ----- */
+  if (url === '/api/auth/users' && (req.method === 'PATCH' || req.method === 'PUT')) {
+    const admin = await requireAdmin(req, res);
+    if (!admin) return;
+    const body = await readBody(req, 40000);
+    const email = cleanEmail(body.email);
+    const user = admin.store.users[email];
+    if (!user) return sendJSON(res, 404, { detail: 'Foydalanuvchi topilmadi.' });
+
+    if (email === admin.auth.sub) {
+      if (body.status === 'blocked') return sendJSON(res, 400, { detail: 'O‘zingizni bloklay olmaysiz.' });
+      if (body.role === 'user') return sendJSON(res, 400, { detail: 'O‘zingizdan admin rolini olib tashlay olmaysiz.' });
+    }
+
+    if (body.status === 'active' || body.status === 'blocked') {
+      user.status = body.status;
+    }
+    if (body.role === 'admin' || body.role === 'user') {
+      user.role = body.role;
+    }
+    if (body.name !== undefined) {
+      const name = String(body.name || '').trim().slice(0, 120);
+      if (name) user.name = name;
+    }
+    if (body.phone !== undefined) {
+      user.phone = String(body.phone || '').trim().slice(0, 40);
+    }
+    if (body.password) {
+      const nextPassword = String(body.password);
+      if (nextPassword.length < 6) return sendJSON(res, 400, { detail: 'Parol kamida 6 ta belgi.' });
+      user.passwordHash = hashPassword(nextPassword);
+      user.provider = 'password';
+    }
+    user.updatedAt = new Date().toISOString();
+    await saveStore(admin.store);
+    return sendJSON(res, 200, { user: publicUser(user) });
+  }
+
+  /* ----- Admin: foydalanuvchini o'chirish ----- */
+  if (url === '/api/auth/users' && req.method === 'DELETE') {
+    const admin = await requireAdmin(req, res);
+    if (!admin) return;
+    let email = '';
+    try {
+      const body = await readBody(req, 20000);
+      email = cleanEmail(body.email);
+    } catch (e) { email = ''; }
+    if (!email) {
+      const q = String((req.url || '').split('?')[1] || '');
+      const params = new URLSearchParams(q);
+      email = cleanEmail(params.get('email'));
+    }
+    if (!email) return sendJSON(res, 400, { detail: 'email kerak.' });
+    if (email === admin.auth.sub) return sendJSON(res, 400, { detail: 'O‘zingizni o‘chira olmaysiz.' });
+    if (!admin.store.users[email]) return sendJSON(res, 404, { detail: 'Foydalanuvchi topilmadi.' });
+    delete admin.store.users[email];
+    admin.store.results = admin.store.results.filter(function (r) { return cleanEmail(r.email) !== email; });
+    await saveStore(admin.store);
+    return sendJSON(res, 200, { ok: true, email: email });
+  }
+
+  return false;
+}
+
+async function handleResults(req, res) {
+  const auth = requestAuth(req);
+  if (!auth) return sendJSON(res, 401, { detail: 'Avval tizimga kiring.' });
+  const store = await loadStore();
+  const user = store.users[auth.sub];
+  if (!user) return sendJSON(res, 401, { detail: 'Hisob topilmadi.' });
+  if (String(user.status || 'active') === 'blocked') {
+    return sendJSON(res, 403, { detail: 'Bu hisob bloklangan.' });
+  }
+  const isAdmin = isAdminEmailServer(auth.sub) || String(user.role || 'user') === 'admin';
+
+  if (req.method === 'GET') {
+    const list = store.results
+      .filter(function (r) { return isAdmin || cleanEmail(r.email) === cleanEmail(user.email); })
+      .sort(function (a, b) { return String(b.date).localeCompare(String(a.date)); })
+      .slice(0, 1000);
+    return sendJSON(res, 200, { results: list, total: list.length });
+  }
+
+  if (req.method === 'POST') {
+    const body = await readBody(req, 60000);
+    const type = String(body.type || 'test').trim().slice(0, 40);
+    const test = String(body.test || type).trim().slice(0, 160);
+    const score = String(body.score || '').slice(0, 80);
+    const percentage = Math.max(0, Math.min(100, Number(body.percentage) || 0));
+    const band = Math.max(0, Math.min(9, Number(body.band) || 0));
+    const today = new Date().toISOString().slice(0, 10);
+    const email = cleanEmail(user.email);
+
+    const existing = store.results.find(function (r) {
+      return cleanEmail(r.email) === email && String(r.type) === type && String(r.date).slice(0, 10) === today;
+    });
+    if (existing) {
+      existing.test = test;
+      existing.score = score;
+      existing.percentage = percentage;
+      existing.band = band;
+      existing.date = new Date().toISOString();
+    } else {
+      store.results.unshift({
+        id: 'res-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+        email: email,
+        student: String(user.name || email),
+        type: type,
+        test: test,
+        score: score,
+        percentage: percentage,
+        band: band,
+        date: new Date().toISOString()
+      });
+      store.results = store.results.slice(0, MAX_STORED_RESULTS);
+    }
+    await saveStore(store);
+    return sendJSON(res, 201, { ok: true });
+  }
+
+  return sendJSON(res, 405, { detail: 'Method not allowed' });
+}
+
 /* ---------- AI provayderlari ---------- */
 function upstreamError(status, text) {
   let detail = text || ('HTTP ' + status);
@@ -187,6 +870,9 @@ function upstreamError(status, text) {
 
 function aiTimeoutMs(opts) {
   const envTimeout = Number(process.env.AI_TIMEOUT_MS || 0);
+  // Tez oqim (AI maslahat): Vercel'dagi umumiy timeout qanchalik katta
+  // bo'lishidan qat'i nazar, 20s dan oshmasligi kerak — foydalanuvchi kutmaydi.
+  if (opts && opts.fast) return envTimeout > 0 ? Math.min(envTimeout, 20000) : 20000;
   if (envTimeout > 0) return envTimeout;
   const kind = String((opts && opts.kind) || '');
   if (kind === 'advice' || kind === 'chat' || kind === 'admin') return 20000;
@@ -264,22 +950,52 @@ function shouldTryGeminiFallback(err) {
     msg.indexOf('econnreset') >= 0;
 }
 
-async function callGemini(opts) {
-  const primary = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
-  const fallback = process.env.GEMINI_FALLBACK_MODEL || 'gemini-3.1-flash-lite';
-  const models = [primary];
-  if (fallback && fallback !== primary) models.push(fallback);
-  let lastErr = null;
+function shouldDegradeGemini(err) {
+  const status = Number(err && err.upstream) || 0;
+  const msg = String((err && err.message) || '').toLowerCase();
+  return status === 429 || status === 503 ||
+    msg.indexOf('high demand') >= 0 || msg.indexOf('quota') >= 0 ||
+    msg.indexOf('overloaded') >= 0;
+}
 
-  for (const model of models) {
+function markGeminiDegraded(model) {
+  geminiDegradedModel = String(model || '');
+  geminiDegradedUntil = Date.now() + GEMINI_DEGRADE_MS;
+}
+
+async function callGemini(opts) {
+  const mainModel = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
+  const fallback = process.env.GEMINI_FALLBACK_MODEL || 'gemini-3.1-flash-lite';
+  const fastModel = process.env.GEMINI_FAST_MODEL || 'gemini-flash-lite-latest';
+  const fastFallback = process.env.GEMINI_FAST_FALLBACK_MODEL || 'gemini-3.5-flash-lite';
+
+  // AI maslahat kabi interaktiv oqimlarda faqat yengil (lite) modellardan
+  // foydalanamiz. Asosiy modelning kvotasi tugagan bo'lsa, unga urunib
+  // 20-30 soniya kutish foydasiz — shuning uchun uni bu oqimga kiritmaymiz.
+  const candidates = (opts && opts.fast)
+    ? [fastModel, fastFallback]
+    : [mainModel, fallback];
+
+  const models = [];
+  const addModel = function (m) { if (m && models.indexOf(m) < 0) models.push(m); };
+  const degraded = Date.now() < geminiDegradedUntil ? geminiDegradedModel : '';
+  candidates.forEach(function (m) { if (m !== degraded) addModel(m); });
+  candidates.forEach(addModel);
+  if (!models.length) addModel(candidates[0]);
+
+  let lastErr = null;
+  for (let i = 0; i < models.length; i++) {
+    const model = models[i];
     try {
       const text = await callGeminiModel(model, opts);
       geminiActiveModel = model;
       return text;
     } catch (err) {
       lastErr = err;
-      if (!shouldTryGeminiFallback(err) || model === models[models.length - 1]) throw err;
-      console.warn('[Gemini fallback]', model, '->', models[models.indexOf(model) + 1], ':', err.message);
+      if (shouldDegradeGemini(err)) markGeminiDegraded(model);
+      const next = models[i + 1];
+      if (!shouldTryGeminiFallback(err) || !next) throw err;
+      console.warn('[Gemini fallback]', model, '->', next, ':', err.message);
     }
   }
   throw lastErr || new Error('Gemini javob bermadi');
@@ -290,17 +1006,19 @@ async function callGeminiModel(model, opts) {
     encodeURIComponent(model) + ':generateContent?key=' + encodeURIComponent(GEMINI_KEY);
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), (opts.maxTokens || 0) > 4096 ? 90000 : 45000);
+  const timeoutMs = aiTimeoutMs(opts) || 45000;
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const generationConfig = {
       temperature: 0.7,
       maxOutputTokens: opts.maxTokens || 800
     };
     if (opts.jsonMode) generationConfig.responseMimeType = 'application/json';
-    // Gemini 3 thinking tokenlari JSON javobini kesib qo'ymasligi uchun.
-    // Kerak bo'lsa .env orqali GEMINI_THINKING_BUDGET=1024 qilib yoqish mumkin.
+    // thinkingConfig faqat aniq > 0 sozlanganida yuboriladi. Flash-lite modellar
+    // uni qabul qilmaydi (400 INVALID_ARGUMENT) — shuning uchun 0 da umuman yubormaymiz.
+    // Interaktiv (fast) oqimlarda esa umuman o'chirilgan: javob tezroq qaytadi.
     const thinkingBudget = Number(process.env.GEMINI_THINKING_BUDGET || 0);
-    if (isFinite(thinkingBudget) && thinkingBudget >= 0) {
+    if (!opts.fast && isFinite(thinkingBudget) && thinkingBudget > 0) {
       generationConfig.thinkingConfig = { thinkingBudget: thinkingBudget };
     }
 
@@ -925,6 +1643,34 @@ async function handleChat(req, res) {
 
 const ADVICE_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
+/* Takroriy matn savollari (ayniqsa tayyor takliflar) uchun kichik kesh.
+   Rasmli so'rovlar keshlanmaydi — ularning mazmuni har xil bo'ladi. */
+const ADVICE_CACHE_TTL = 30 * 60 * 1000;
+const ADVICE_CACHE_MAX = 120;
+const adviceCache = new Map();
+
+function adviceCacheKey(message, level) {
+  return crypto.createHash('sha256')
+    .update(String(message).trim().toLowerCase() + '|' + String(level))
+    .digest('hex');
+}
+function adviceCacheGet(key) {
+  const hit = adviceCache.get(key);
+  if (!hit) return null;
+  if (Date.now() - hit.at > ADVICE_CACHE_TTL) {
+    adviceCache.delete(key);
+    return null;
+  }
+  return hit.payload;
+}
+function adviceCacheSet(key, payload) {
+  if (adviceCache.size >= ADVICE_CACHE_MAX) {
+    const oldest = adviceCache.keys().next().value;
+    if (oldest) adviceCache.delete(oldest);
+  }
+  adviceCache.set(key, { at: Date.now(), payload: payload });
+}
+
 function normalizeAdviceImages(value) {
   if (!Array.isArray(value)) return [];
   const out = [];
@@ -961,6 +1707,12 @@ async function handleAdvice(req, res) {
 
   const level = String(body.level || 'B2').toUpperCase();
   const safeLevel = ['A2', 'B1', 'B2', 'C1'].indexOf(level) >= 0 ? level : 'B2';
+
+  const ckey = images.length ? '' : adviceCacheKey(message, safeLevel);
+  if (ckey) {
+    const cached = adviceCacheGet(ckey);
+    if (cached) return sendJSON(res, 200, Object.assign({}, cached, { cached: true }));
+  }
 
   const system = [
     'You are "Englify AI Mentor", a friendly, patient English and IELTS tutor.',
@@ -1008,10 +1760,12 @@ async function handleAdvice(req, res) {
 
   const raw = await callAI({
     kind: 'advice',
+    fast: true,
     system,
     messages,
     jsonMode: false,
-    maxTokens: 3072
+    // 100-300 so'z uchun 900 token yetarli; 3072 javob generatorini sekinlashtirardi.
+    maxTokens: 900
   });
 
   const reply = cleanText(raw, 10000);
@@ -1021,11 +1775,13 @@ async function handleAdvice(req, res) {
     throw err;
   }
 
-  return sendJSON(res, 200, {
+  const payload = {
     reply: reply,
     provider: activeProvider(),
     model: providerModel()
-  });
+  };
+  if (ckey) adviceCacheSet(ckey, payload);
+  return sendJSON(res, 200, payload);
 }
 
 async function handleScoreWriting(req, res) {
@@ -1222,6 +1978,13 @@ async function handleApi(req, res, url) {
       provider: p,
       model: providerModel(),
       endpoints: [
+        '/api/auth/register',
+        '/api/auth/login',
+        '/api/auth/google',
+        '/api/auth/config',
+        '/api/auth/me',
+        '/api/auth/users',
+        '/api/results',
         '/api/ai/chat',
         '/api/ai/advice',
         '/api/ai/admin',
@@ -1229,8 +1992,46 @@ async function handleApi(req, res, url) {
         '/api/ai/score-speaking',
         '/api/ai/generate',
         '/api/ai/tts'
-      ]
+      ],
+      auth: {
+        sharedStore: !!redisCreds(),
+        adminEmails: ADMIN_EMAILS.length,
+        googleEnabled: !!GOOGLE_CLIENT_ID
+      }
     });
+    return true;
+  }
+
+  /* ---------- Auth + natijalar (admin panel uchun shared store) ---------- */
+  if (url.indexOf('/api/auth/') === 0) {
+    const forwarded = req.headers && req.headers['x-forwarded-for'];
+    const ip = (forwarded ? String(forwarded).split(',')[0].trim() : '') ||
+      (req.socket && req.socket.remoteAddress) || 'unknown';
+    if (!rateAllowed(ip)) {
+      sendJSON(res, 429, { detail: 'Juda ko‘p so‘rov. Bir daqiqadan keyin urinib ko‘ring.' });
+      return true;
+    }
+    try {
+      const handled = await handleAuth(req, res, url);
+      if (handled !== false) return true;
+    } catch (err) {
+      const status = err.status || 500;
+      if (status >= 500) console.error('[auth error]', err.message);
+      sendJSON(res, status, { detail: err.message || 'Server xatosi' });
+      return true;
+    }
+    sendJSON(res, 404, { detail: 'Auth endpoint topilmadi' });
+    return true;
+  }
+
+  if (url === '/api/results') {
+    try {
+      await handleResults(req, res);
+    } catch (err) {
+      const status = err.status || 500;
+      if (status >= 500) console.error('[results error]', err.message);
+      sendJSON(res, status, { detail: err.message || 'Server xatosi' });
+    }
     return true;
   }
 
