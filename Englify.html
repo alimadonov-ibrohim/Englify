@@ -76,6 +76,7 @@
   <link rel="stylesheet" href="assets/css/nav.css">
   <link rel="stylesheet" href="assets/css/videos.css">
   <link rel="stylesheet" href="assets/css/advice.css">
+  <link rel="stylesheet" href="assets/css/ai-speaking.css">
   <link rel="stylesheet" href="assets/css/ios-pwa.css">
   <script src="assets/js/vendor/qrcode.js"></script>
 
@@ -226,6 +227,10 @@
             </div>
             <div class="card" style="background:linear-gradient(135deg,#6366f1,#a855f7 55%,#ec4899);" onclick="openSpeaking()">
               <div class="card-left"><div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0"/><path d="M12 17.5V21M9 21h6"/></svg></div><div><h4>Speaking Mock</h4><p>Gapirishni o'rganing va sinab ko'ring</p></div></div>
+              <span>→</span>
+            </div>
+            <div class="card" style="background:linear-gradient(135deg,#10b981,#047857);" onclick="openAISpeaking()">
+              <div class="card-left"><div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3.5 12.7 8 17 9.7 12.7 11.4 11 16l-1.7-4.6L5 9.7 9.3 8 11 3.5z"/><path d="M18 14.5l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9.9-2.1z"/></svg></div><div><h4>AI Speaking</h4><p>Sun'iy intellekt bilan erkin suhbat</p></div></div>
               <span>→</span>
             </div>
             <div class="card" style="background:linear-gradient(135deg,#dc2626,#991b1b);" onclick="openBattle()">
@@ -652,6 +657,12 @@
           <div id="speaking-content"></div>
         </div>
 
+        <!-- AI SPEAKING -->
+        <div id="aispeaking" class="panel">
+          <button class="back" onclick="aispeakingBack()">← Orqaga</button>
+          <div id="aispeaking-content"></div>
+        </div>
+
         <!-- AI BILAN MASLAHAT -->
         <div id="advice" class="panel">
           <div id="advice-content"></div>
@@ -788,6 +799,7 @@
   <script src="assets/js/reading.js"></script>
   <script src="assets/js/speaking.js"></script>
   <script src="assets/js/advice.js"></script>
+  <script src="assets/js/ai-speaking.js"></script>
   <script src="assets/js/battle-setup.js"></script>
   <script src="assets/js/videos.js"></script>
   <script src="assets/js/full-exam.js"></script>
