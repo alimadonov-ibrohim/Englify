@@ -11,7 +11,7 @@
 
 'use strict';
 
-const VERSION = 'englify-pwa-v2';
+const VERSION = 'englify-pwa-v3';
 const CORE_CACHE = VERSION + '-core';
 const RUNTIME_CACHE = VERSION + '-runtime';
 
@@ -151,20 +151,20 @@ self.addEventListener('fetch', function (event) {
     return;
   }
 
-  // Statik fayllar: keshdan darhol, fonda yangilanadi.
+  // Statik fayllar: avval internet — yangi dizayn darhol ko'rinadi,
+  // internet bo'lmasa keshdan (offline) qaytaramiz.
   event.respondWith((async function () {
     const cache = await caches.open(RUNTIME_CACHE);
-    const cached = (await caches.match(req)) || (await cache.match(req));
-
-    const network = fetch(req).then(function (res) {
-      if (res && res.ok && res.type === 'basic') {
-        cache.put(req, res.clone()).catch(function () {});
+    try {
+      const fresh = await fetch(req);
+      if (fresh && fresh.ok && fresh.type === 'basic') {
+        cache.put(req, fresh.clone()).catch(function () {});
       }
-      return res;
-    }).catch(function () { return null; });
-
-    if (cached) return cached;
-    const fresh = await network;
-    return fresh || new Response('', { status: 504, statusText: 'Offline' });
+      return fresh;
+    } catch (e) {
+      const cached = (await caches.match(req)) || (await cache.match(req));
+      if (cached) return cached;
+      return new Response('', { status: 504, statusText: 'Offline' });
+    }
   })());
 });
