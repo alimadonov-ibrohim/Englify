@@ -384,14 +384,18 @@
           </div>
         </div>
 
-        <!-- 4. LUG'AT BO'LIMI -->
+        <!-- 4. LUG'AT BO'LIMI — FAQAT QIDIRUV + NATIJA -->
         <div id="vocab" class="panel">
-          <form class="dict-search" onsubmit="event.preventDefault();searchDictionaryAPI();">
-            <span class="dict-search-icon">🔍</span>
-            <input type="text" id="vocab-search-input" class="dict-search-input" placeholder="So'z qidiring…" autocomplete="off">
-            <button type="submit" class="dict-search-btn" aria-label="Qidirish">→</button>
+          <form id="dx-form" class="dx-search" onsubmit="event.preventDefault();searchDictionaryAPI();">
+            <span class="dx-lens" aria-hidden="true">
+              <svg viewBox="0 0 24 24" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+            </span>
+            <input id="dx-input" class="dx-field" type="text" placeholder="So'z qidiring…" autocomplete="off" aria-label="So'z qidirish">
+            <button class="dx-go" type="submit" aria-label="Qidirish">
+              <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+            </button>
           </form>
-          <div id="api-results" class="dict-results"></div>
+          <div id="dx-output" class="dx-output" aria-live="polite"></div>
         </div>
 
         <!-- 5. PROFIL BO'LIMI -->

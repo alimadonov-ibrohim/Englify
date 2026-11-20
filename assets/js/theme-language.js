@@ -76,8 +76,8 @@
       const pt = document.getElementById('page-title');
       if(pt) pt.textContent = titles[active.id];
     }
-    // Vocab placeholders
-    const searchInput = document.getElementById('vocab-search-input');
+    // Dictionary placeholder
+    const searchInput = document.getElementById('dx-input');
     if(searchInput) searchInput.placeholder = t('searchPh');
     const dictH1 = document.querySelector('#vocab h1');
     if(dictH1) dictH1.textContent = t('dictTitle');

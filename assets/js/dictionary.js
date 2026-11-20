@@ -1,81 +1,91 @@
-// Englify — dictionary
-  // ========== DICTIONARY API (EN): FAQAT QIDIRUV + NATIJA ==========
-  async function searchDictionaryAPI(){
-    const input = document.getElementById('vocab-search-input');
-    const results = document.getElementById('api-results');
-    if(!input || !results) return;
+/* ============================================================
+   Englify — Dictionary
+   Faqat qidiruv + bitta natija. Eski kod butunlay o'chirildi.
+   ============================================================ */
 
-    const original = (input.value || '').trim();
-    if(!original){ input.focus(); return; }
+let dxRequest = 0;
 
-    results.innerHTML = '<div class="dict-loading"><span class="dict-spinner"></span></div>';
+async function searchDictionaryAPI(){
+  const field  = document.getElementById('dx-input');
+  const output = document.getElementById('dx-output');
+  if(!field || !output) return;
 
-    try {
-      let word = original;
-      let data = await fetchDictionary('en', word);
+  const query = (field.value || '').trim();
+  if(!query){ field.focus(); return; }
 
-      // O'zbekcha yozilsa, ichkarida inglizchaga tarjima qilib qidirish
-      if(!data){
-        const translated = await translateText(original, 'uz', 'en');
-        if(translated && translated.toLowerCase() !== original.toLowerCase()){
-          word = translated;
-          data = await fetchDictionary('en', word);
-        }
+  const id = ++dxRequest; // oxirgi so'rov natijasi ko'rsatiladi
+
+  output.innerHTML = '<div class="dx-wait"><span class="dx-spin"></span>Qidirilmoqda…</div>';
+
+  try {
+    let word = query;
+    let data = await dxFetchWord(word);
+
+    // O'zbekcha yozilsa, ichkarida inglizchaga tarjima qilib qidirish
+    if(!data){
+      const translated = await dxTranslate(query);
+      if(translated && translated.toLowerCase() !== query.toLowerCase()){
+        word = translated;
+        data = await dxFetchWord(word);
       }
-
-      if(!data){
-        results.innerHTML = '<div class="dict-empty">So‘z topilmadi</div>';
-        return;
-      }
-
-      const entry = data[0] || {};
-      const phonetic = entry.phonetic || ((entry.phonetics || []).find(function(p){ return p.text; }) || {}).text || '';
-      const first = (entry.meanings || []).find(function(m){ return m.definitions && m.definitions.length; }) || {};
-      const def = (first.definitions || [])[0] || {};
-
-      results.innerHTML = '<div class="dict-card">'
-        + '<h4>' + escapeHtml(entry.word) + '</h4>'
-        + (phonetic ? '<div class="dict-phon">' + escapeHtml(phonetic) + '</div>' : '')
-        + '<div class="dict-def">' + escapeHtml(def.definition || 'Ma’no topilmadi') + '</div>'
-        + '</div>';
-    } catch(e){
-      console.error('Dictionary search error:', e);
-      results.innerHTML = '<div class="dict-empty">Qidirishda xatolik</div>';
     }
-  }
 
-  function escapeHtml(str){
-    return String(str || '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  }
+    if(id !== dxRequest) return; // eski so'rov — e'tiborsiz
 
-  async function fetchDictionary(lang, word){
-    try {
-      const url = 'https://api.dictionaryapi.dev/api/v2/entries/' + lang + '/' + encodeURIComponent(word);
-      const res = await fetch(url);
-      if(!res.ok) return null;
-      const data = await res.json();
-      if(!Array.isArray(data) || !data.length) return null;
-      return data;
-    } catch(e){
-      return null;
+    if(!data){
+      output.innerHTML = '<div class="dx-none">So‘z topilmadi</div>';
+      return;
     }
-  }
 
-  async function translateText(text, from, to){
-    try {
-      const url = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text) + '&langpair=' + from + '|' + to;
-      const res = await fetch(url);
-      if(!res.ok) return null;
-      const data = await res.json();
-      const translated = data && data.responseData && data.responseData.translatedText;
-      if(!translated) return null;
-      if(/INVALID|QUERY LENGTH|MYMEMORY WARNING/i.test(translated)) return null;
-      return translated.trim();
-    } catch(e){
-      return null;
-    }
+    const entry   = data[0] || {};
+    const sound   = entry.phonetic || ((entry.phonetics || []).find(p => p && p.text) || {}).text || '';
+    const meaning = ((entry.meanings || []).find(m => m && m.definitions && m.definitions.length) || {});
+    const def     = (meaning.definitions || [])[0] || {};
+
+    output.innerHTML =
+      '<article class="dx-card">' +
+        '<h4 class="dx-word">' + dxEscape(entry.word || word) + '</h4>' +
+        (sound ? '<div class="dx-phon">' + dxEscape(sound) + '</div>' : '') +
+        '<div class="dx-meaning">' + dxEscape(def.definition || 'Ma’no topilmadi') + '</div>' +
+      '</article>';
+  } catch(error){
+    if(id !== dxRequest) return;
+    console.error('Dictionary search error:', error);
+    output.innerHTML = '<div class="dx-none">Qidirishda xatolik yuz berdi</div>';
   }
+}
+
+function dxEscape(value){
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+async function dxFetchWord(word){
+  try {
+    const url = 'https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(word);
+    const res = await fetch(url);
+    if(!res.ok) return null;
+    const data = await res.json();
+    return Array.isArray(data) && data.length ? data : null;
+  } catch(error){
+    return null;
+  }
+}
+
+async function dxTranslate(text){
+  try {
+    const url = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text) + '&langpair=uz|en';
+    const res = await fetch(url);
+    if(!res.ok) return null;
+    const data = await res.json();
+    const value = data && data.responseData && data.responseData.translatedText;
+    if(!value || /INVALID|QUERY LENGTH|MYMEMORY WARNING/i.test(value)) return null;
+    return String(value).trim();
+  } catch(error){
+    return null;
+  }
+}
