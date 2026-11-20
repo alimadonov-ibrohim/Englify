@@ -1,6 +1,7 @@
 /* ============================================================
    Englify — Dictionary
-   Faqat qidiruv + bitta natija. Eski kod butunlay o'chirildi.
+   Qidiruv ikki tomonlama: O'zbekcha <-> Inglizcha.
+   Faqat qidiruv + bitta natija.
    ============================================================ */
 
 let dxRequest = 0;
@@ -13,20 +14,27 @@ async function searchDictionaryAPI(){
   const query = (field.value || '').trim();
   if(!query){ field.focus(); return; }
 
-  const id = ++dxRequest; // oxirgi so'rov natijasi ko'rsatiladi
+  const id = ++dxRequest; // faqat oxirgi so'rov natijasi ko'rsatiladi
 
   output.innerHTML = '<div class="dx-wait"><span class="dx-spin"></span>Qidirilmoqda…</div>';
 
   try {
     let word = query;
-    let data = await dxFetchWord(word);
+    let data = null;
 
-    // O'zbekcha yozilsa, ichkarida inglizchaga tarjima qilib qidirish
-    if(!data){
-      const translated = await dxTranslate(query);
-      if(translated && translated.toLowerCase() !== query.toLowerCase()){
-        word = translated;
-        data = await dxFetchWord(word);
+    // Kirill yozuvida yozilgan bo'lsa — avval inglizchaga tarjima qilamiz
+    if(dxIsUzbek(query)){
+      const translated = await dxTranslate(query, 'uz', 'en');
+      if(translated){ word = translated; data = await dxFetchWord(word); }
+    } else {
+      data = await dxFetchWord(word);
+      // Lotin yozuvidagi o'zbekcha so'z bo'lsa (masalan: erkinlik)
+      if(!data){
+        const translated = await dxTranslate(query, 'uz', 'en');
+        if(translated && translated.toLowerCase() !== query.toLowerCase()){
+          word = translated;
+          data = await dxFetchWord(word);
+        }
       }
     }
 
@@ -41,18 +49,31 @@ async function searchDictionaryAPI(){
     const sound   = entry.phonetic || ((entry.phonetics || []).find(p => p && p.text) || {}).text || '';
     const meaning = ((entry.meanings || []).find(m => m && m.definitions && m.definitions.length) || {});
     const def     = (meaning.definitions || [])[0] || {};
+    const enWord  = entry.word || word;
+
+    // Inglizcha so'zning o'zbekcha tarjimasi
+    let uz = await dxTranslate(enWord, 'en', 'uz');
+    if(id !== dxRequest) return;
+    if(uz && uz.toLowerCase() === String(enWord).toLowerCase()) uz = '';
 
     output.innerHTML =
       '<article class="dx-card">' +
-        '<h4 class="dx-word">' + dxEscape(entry.word || word) + '</h4>' +
+        '<h4 class="dx-word">' + dxEscape(enWord) + '</h4>' +
         (sound ? '<div class="dx-phon">' + dxEscape(sound) + '</div>' : '') +
-        '<div class="dx-meaning">' + dxEscape(def.definition || 'Ma’no topilmadi') + '</div>' +
+        '<div class="dx-meaning">' +
+          (uz ? '<div class="dx-uz">' + dxEscape(uz) + '</div>' : '') +
+          '<div class="dx-en">' + dxEscape(def.definition || 'Ma’no topilmadi') + '</div>' +
+        '</div>' +
       '</article>';
   } catch(error){
     if(id !== dxRequest) return;
     console.error('Dictionary search error:', error);
     output.innerHTML = '<div class="dx-none">Qidirishda xatolik yuz berdi</div>';
   }
+}
+
+function dxIsUzbek(text){
+  return /[\u0400-\u04FF]/.test(text);
 }
 
 function dxEscape(value){
@@ -76,9 +97,9 @@ async function dxFetchWord(word){
   }
 }
 
-async function dxTranslate(text){
+async function dxTranslate(text, from, to){
   try {
-    const url = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text) + '&langpair=uz|en';
+    const url = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text) + '&langpair=' + from + '|' + to;
     const res = await fetch(url);
     if(!res.ok) return null;
     const data = await res.json();

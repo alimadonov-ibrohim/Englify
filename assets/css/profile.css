@@ -77,6 +77,8 @@
     color:var(--ink);font-size:16px;line-height:1.65;
   }
   .dx-meaning::before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:3px;background:linear-gradient(180deg,var(--blue),#8b5cf6);}
+  .dx-uz{color:var(--blue-deep);font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.3;}
+  .dx-en{margin-top:7px;color:var(--ink-soft);font-size:14.5px;line-height:1.6;}
   .dx-wait{max-width:720px;margin:22px auto 0;display:flex;align-items:center;justify-content:center;gap:11px;padding:34px;color:var(--ink-soft);font-size:14px;}
   .dx-spin{width:17px;height:17px;border:2px solid var(--line);border-top-color:var(--blue);border-radius:50%;animation:dxSpin .7s linear infinite;}
   @keyframes dxSpin{to{transform:rotate(360deg)}}
