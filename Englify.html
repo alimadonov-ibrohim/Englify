@@ -801,5 +801,21 @@
   <script src="assets/js/theme-language.js"></script>
   <script src="assets/js/dictionary.js"></script>
   <script src="assets/js/admin.js"></script>
+
+  <!-- Ilova yuklanganda ko'rinadigan ekranni tanlash -->
+  <script>
+    (function(){
+      function boot(){
+        try {
+          if(typeof getSession === 'function' && getSession()) showView('dashboard');
+          else showView('login');
+        } catch(e){
+          showView('login');
+        }
+      }
+      if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+      else boot();
+    })();
+  </script>
 </body>
 </html>
