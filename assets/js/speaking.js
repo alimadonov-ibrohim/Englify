@@ -193,7 +193,7 @@
     const micSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>';
     const aiSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8L12 2z"/></svg>';
     document.getElementById('speaking-content').innerHTML = alRenderIntro({
-      colorClass: 'al-rose',
+      colorClass: 'al-speaking',
       heroSvg: heroSvg,
       title: 'Speaking Mock',
       sub: 'IELTS Speaking Part 2 — mavzuni o\'qib, 1–2 daqiqa gapiring, AI baholaydi',
@@ -238,8 +238,9 @@
             <circle id="smx-ring" cx="72" cy="72" r="54" fill="none" stroke="url(#smxGrad)" stroke-width="10" stroke-linecap="round" stroke-dasharray="339.292" stroke-dashoffset="339.292"/>
             <defs>
               <linearGradient id="smxGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#e11d48"/>
-                <stop offset="100%" stop-color="#be185d"/>
+                <stop offset="0%" stop-color="#6366f1"/>
+                <stop offset="55%" stop-color="#a855f7"/>
+                <stop offset="100%" stop-color="#ec4899"/>
               </linearGradient>
             </defs>
           </svg>
@@ -291,7 +292,7 @@
     document.getElementById('speaking-content').innerHTML = `
       <div class="smx-wrap">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-          <span style="font-size:13px;font-weight:800;color:#e11d48;letter-spacing:.04em;">IELTS SPEAKING — PART 2</span>
+          <span style="font-size:13px;font-weight:800;color:var(--sx-text);letter-spacing:.1em;">IELTS SPEAKING — PART 2</span>
           <span style="font-size:12px;color:var(--ink-soft);font-weight:700;">Tayyorgarlik</span>
         </div>
         <div class="smx-topic-card">
@@ -311,7 +312,7 @@
           <div class="smx-prep-timer" id="smx-prep-timer">${smState.prepLeft}s</div>
           <div class="smx-prep-label">TAYYORGARLIK VAQTI</div>
         </div>
-        <div style="background:rgba(225,29,72,0.06);border:1px solid rgba(225,29,72,0.22);border-radius:12px;padding:12px 14px;font-size:12.5px;color:#9f1239;text-align:center;margin-bottom:16px;line-height:1.6;">
+        <div style="background:var(--sx-soft);border:1px solid var(--sx-line);border-radius:14px;padding:12px 14px;font-size:12.5px;color:var(--sx-text);text-align:center;margin-bottom:16px;line-height:1.6;">
           ⏱ Qisqa eslatma yozishingiz mumkin. Vaqt tugagach gapirish avtomatik boshlanadi.
         </div>
         <button class="smx-btn" onclick="clearInterval(speakingPrepTimer);smBeginRecord();">Tayyor — Gapirishni boshlash →</button>
@@ -321,7 +322,7 @@
       const el = document.getElementById('smx-prep-timer');
       if(el){
         el.textContent = smState.prepLeft + 's';
-        el.style.color = smState.prepLeft <= 10 ? '#ef4444' : '#e11d48';
+        el.style.color = smState.prepLeft <= 10 ? '#f87171' : 'var(--sx-text)';
       }
       if(smState.prepLeft <= 0){
         clearInterval(speakingPrepTimer);
@@ -363,7 +364,7 @@
     document.getElementById('speaking-content').innerHTML = `
       <div class="smx-wrap">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-          <span style="font-size:13px;font-weight:800;color:#e11d48;letter-spacing:.04em;">GAPIRISH VAQTI</span>
+          <span style="font-size:13px;font-weight:800;color:var(--sx-text);letter-spacing:.1em;">GAPIRISH VAQTI</span>
           <span style="font-size:12px;color:var(--ink-soft);font-weight:700;max-width:60%;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.title.replace(/'/g,'&#39;')}</span>
         </div>
         <div class="smx-record-card">
