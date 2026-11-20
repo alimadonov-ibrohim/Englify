@@ -1,4 +1,14 @@
 // Englify — core
+  // HTML chiqarishda matnni xavfsiz qilish (barcha modullar ishlatadi)
+  function escapeHtml(value){
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   // --- ANDROID APK: native Android TTS ko'prigi ---
   // WebView'ning o'z TTS'i zaif bo'lishi mumkin. Ilovada native TextToSpeech ishlatamiz.
   (function(){
