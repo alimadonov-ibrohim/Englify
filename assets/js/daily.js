@@ -297,7 +297,7 @@
     const cached = forceNew ? null : dtGetAiQuestions(lvl);
     dtState.aiPromise = cached
       ? Promise.resolve(cached)
-      : aiGenerate('daily', lvl, 60000)
+      : aiGenerate('daily', lvl, 22000)
           .then(function(data){
             const qs = dtNormalizeAiQuestions(data);
             if(qs) dtSaveAiQuestions(qs, lvl);
@@ -357,7 +357,7 @@
     const token = state.loadToken;
     let qs = state.forceNew ? null : dtGetAiQuestions(state.level);
     if(!qs && state.aiPromise){
-      try { qs = await state.aiPromise; } catch(e){ qs = null; }
+      try { qs = await aiWithTimeout(state.aiPromise, 14000, null); } catch(e){ qs = null; }
     }
     if(dtState !== state || state.loadToken !== token || state.screen !== 'loading') return;
     state.questions = (qs && qs.length === DAILY_TOTAL) ? qs : dtSeededPick(state.level, state.forceNew ? state.loadToken : 0);

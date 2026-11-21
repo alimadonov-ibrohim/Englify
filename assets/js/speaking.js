@@ -219,7 +219,7 @@
   function startSpeaking(){
     const state = smState;
     smState.screen = 'loading';
-    smState.aiPromise = aiGenerate('speaking', 'B2', 60000)
+    smState.aiPromise = aiGenerate('speaking', 'B2', 22000)
       .then(function(d){
         if(!d || typeof d.title !== 'string' || !Array.isArray(d.points) || d.points.length < 4) return null;
         const points = d.points.slice(0, 5).map(function(x){ return String(x || '').trim(); }).filter(Boolean);
@@ -263,17 +263,18 @@
         if(ringP) ringP.textContent = '100%';
         if(ring) ring.setAttribute('stroke-dashoffset', '0');
         if(load) load.style.width = '100%';
-        Promise.all([
-          smState.aiPromise || Promise.resolve(null),
-          new Promise(function(resolve){ setTimeout(resolve, 450); })
-        ]).then(function(out){
+        function smFinish(out){
           if(smState !== state || state.screen !== 'loading') return;
-          if(out[0] && out[0].title && out[0].points && out[0].points.length >= 4) state.topic = out[0];
+          if(out && out[0] && out[0].title && out[0].points && out[0].points.length >= 4) state.topic = out[0];
           setTimeout(function(){
             if(smState !== state || state.screen !== 'loading') return;
             smRenderPrep();
           }, 350);
-        });
+        }
+        Promise.all([
+          aiWithTimeout(smState.aiPromise || Promise.resolve(null), 14000, null),
+          new Promise(function(resolve){ setTimeout(resolve, 450); })
+        ]).then(smFinish).catch(function(){ smFinish([null]); });
         return;
       }
       const ringP = document.getElementById('smx-ring-pct');

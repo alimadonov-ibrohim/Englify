@@ -128,7 +128,7 @@
     lmState.source = 'local';
 
     function generateOnce(){
-      return aiGenerate('listening', 'B2', 65000).then(function(d){
+      return aiGenerate('listening', 'B2', 22000).then(function(d){
         if(!d || !String(d.script || '').trim() || !aiValidQuestionList(d.qs, 10)) return null;
         return {
           id: d.id || ('ai-listen-' + Date.now()),
@@ -182,14 +182,11 @@
       if(pct >= 92) clearInterval(listeningLoadTimer);
     }, 180);
 
-    Promise.all([
-      lmState.aiPromise,
-      new Promise(function(resolve){ setTimeout(resolve, 1100); })
-    ]).then(function(out){
+    function lmFinish(out){
       clearInterval(msgTimer);
       clearInterval(listeningLoadTimer);
       if(lmState !== state || state.screen !== 'loading') return;
-      if(out[0]){
+      if(out && out[0]){
         LISTEN_DATA = out[0];
         lmState.source = 'ai';
       } else {
@@ -201,7 +198,11 @@
         if(lmState !== state || state.screen !== 'loading') return;
         lmRenderAudio();
       }, 380);
-    });
+    }
+    Promise.all([
+      aiWithTimeout(lmState.aiPromise, 14000, null),
+      new Promise(function(resolve){ setTimeout(resolve, 1100); })
+    ]).then(lmFinish).catch(function(){ lmFinish([null]); });
   }
 
   function lmUpdateLoad(p){

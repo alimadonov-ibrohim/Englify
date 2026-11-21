@@ -161,7 +161,7 @@
     const examRef = fexState;
     // Har kirishda AI butun imtihon variantini yaratadi. Tayyor bo'lmaguncha
     // "Imtihonni boshlash" tugmasi kutish ekranini ko'rsatadi.
-    fexState.aiPromise = aiGenerate('full-exam', 'B2', 120000)
+    fexState.aiPromise = aiGenerate('full-exam', 'B2', 25000)
       .then(function(d){
         if(fexState !== examRef) return false;
         if(!d || !d.listening || !d.reading || !d.uoe ||
@@ -262,7 +262,8 @@
           <h2>Yangi imtihon yaratilmoqda...</h2>
           <p class="fb-desc">Gemini 10 ta Listening, 10 ta Reading, 10 ta Use of English savoli va 4 ta Writing mavzusini tayyorlamoqda. Bu odatda 10–30 soniya oladi.</p>
         </div>`;
-      await fexState.aiPromise;
+      await aiWithTimeout(fexState.aiPromise, 16000, false);
+      if(fexState) fexState.aiReady = true;
       if(!fexState || fexState.screen !== "loading") return;
     }
     fexState.screen = "brief";

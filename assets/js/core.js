@@ -9,6 +9,15 @@
       .replace(/'/g, '&#39;');
   }
 
+  // AI kutish chegarasi: va'da vaqtida tugamasa, lokal kontentga o'tamiz.
+  // Aks holda yuklanish ekrani 92% da abadiy qotib qoladi.
+  function aiWithTimeout(promise, ms, fallback){
+    return Promise.race([
+      Promise.resolve(promise).catch(function(){ return fallback; }),
+      new Promise(function(resolve){ setTimeout(function(){ resolve(fallback); }, ms || 14000); })
+    ]);
+  }
+
   // --- ANDROID APK: native Android TTS ko'prigi ---
   // WebView'ning o'z TTS'i zaif bo'lishi mumkin. Ilovada native TextToSpeech ishlatamiz.
   (function(){

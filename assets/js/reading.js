@@ -138,7 +138,7 @@ Understanding bee communication is not only fascinating but also important, beca
     clearInterval(readingLoadTimer);
     const state = rdState;
     rdState.screen = 'loading';
-    rdState.aiPromise = aiGenerate('reading', 'B2', 70000)
+    rdState.aiPromise = aiGenerate('reading', 'B2', 22000)
       .then(function(d){
         if(!d || !String(d.passage || '').trim() || !aiValidQuestionList(d.qs, 10)) return null;
         return {
@@ -179,18 +179,25 @@ Understanding bee communication is not only fascinating but also important, beca
         rdUpdateLoad(pct);
         const loadTxt = document.getElementById('rdx-ltxt');
         if(loadTxt) loadTxt.textContent = 'AI matn va 10 ta savol yaratmoqda...';
-        Promise.all([
-          rdState.aiPromise || Promise.resolve(null),
-          new Promise(function(resolve){ setTimeout(resolve, 900); })
-        ]).then(function(out){
+        function rdFinish(out){
           if(rdState !== state || state.screen !== 'loading') return;
-          if(out[0]) READING_DATA = { passage: out[0].passage, qs: rdPrepareQuestions(sbPickMany(out[0].qs, 10)) };
+          const ai = out && out[0];
+          if(ai && ai.passage && Array.isArray(ai.qs) && ai.qs.length){
+            READING_DATA = { passage: ai.passage, qs: rdPrepareQuestions(sbPickMany(ai.qs, 10)) };
+          } else {
+            const bank = READING_BANK[Math.floor(Math.random() * READING_BANK.length)] || READING_BANK[0];
+            READING_DATA = { passage: bank.passage, qs: rdPrepareQuestions(sbPickMany(bank.qs, 10)) };
+          }
           rdUpdateLoad(100);
           setTimeout(function(){
             if(rdState !== state || state.screen !== 'loading') return;
             rdRenderPassage();
           }, 350);
-        });
+        }
+        Promise.all([
+          aiWithTimeout(rdState.aiPromise || Promise.resolve(null), 14000, null),
+          new Promise(function(resolve){ setTimeout(resolve, 900); })
+        ]).then(rdFinish).catch(function(){ rdFinish([null]); });
         return;
       }
       rdUpdateLoad(pct);
