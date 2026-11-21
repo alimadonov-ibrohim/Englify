@@ -415,7 +415,7 @@
     const C = 2 * Math.PI * 54;
     let pct = 0;
     aisLoadTimer = setInterval(() => {
-      pct += 10 + Math.random()*12;
+      pct += 14 + Math.random()*14;
       if(pct >= 100){
         pct = 100;
         clearInterval(aisLoadTimer);
@@ -434,7 +434,7 @@
       if(rp) rp.textContent = Math.floor(pct) + '%';
       if(r) r.setAttribute('stroke-dashoffset', String(C * (1 - pct/100)));
       if(l) l.style.width = pct + '%';
-    }, 130);
+    }, 90);
   }
 
   function aisBeginChat(){
@@ -894,6 +894,12 @@
       return { role: m.role === 'ai' ? 'assistant' : 'user', content: m.text };
     });
     aisSetVoiceState('processing');
+    // Kutish paytida ham ekron jonli ko'rinsin
+    const live = document.getElementById('ais-live-reply');
+    if(live){
+      live.style.display = 'block';
+      live.innerHTML = '<div class="ais-live-name">ALILM</div><div class="ais-typing"><span></span><span></span><span></span></div>';
+    }
     aiApiPost('/api/ai/chat', {
       scenario: {
         title: aisState.scenario.title,
@@ -903,7 +909,7 @@
       },
       messages: history,
       message: text
-    }, 25000).then(function(data){
+    }, 14000).then(function(data){
       if(aisState.screen !== 'chat') return;
       const reply = data && data.reply ? String(data.reply).trim() : '';
       const aiFb = data && data.feedback ? String(data.feedback).trim() : '';

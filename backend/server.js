@@ -870,6 +870,8 @@ function upstreamError(status, text) {
 
 function aiTimeoutMs(opts) {
   const envTimeout = Number(process.env.AI_TIMEOUT_MS || 0);
+  // AI Speaking chat kabi interaktiv oqimlar uchun aniq qisqa timeout.
+  if (opts && Number(opts.timeoutMs) > 0) return Math.min(Number(opts.timeoutMs), 30000);
   // Tez oqim (AI maslahat): Vercel'dagi umumiy timeout qanchalik katta
   // bo'lishidan qat'i nazar, 20s dan oshmasligi kerak — foydalanuvchi kutmaydi.
   if (opts && opts.fast) return envTimeout > 0 ? Math.min(envTimeout, 20000) : 20000;
@@ -1619,10 +1621,14 @@ async function handleChat(req, res) {
 
   const raw = await callAI({
     kind: 'chat',
+    // Maslahat bo'limidagi kabi faqat yengil (lite) model — javob ancha tez qaytadi.
+    fast: true,
     system,
     messages,
     jsonMode: true,
-    maxTokens: 2048
+    // 2-4 gaplik javob + 1 fikr + 1 savol uchun 600 token yetarli.
+    maxTokens: 600,
+    timeoutMs: 12000
   });
 
   const parsed = parseJSON(raw) || {};
