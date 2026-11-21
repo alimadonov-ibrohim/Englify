@@ -1,9 +1,9 @@
-// Englify тАФ ai-speaking
-  // --- AI SPEAKING тАФ alilm.uz uslubi (real-vaqt suhbat) ---
+// Englify — ai-speaking
+  // --- AI SPEAKING — alilm.uz uslubi (real-vaqt suhbat) ---
   const AIS_SCENARIOS = [
     {
       id: 'daily',
-      icon: 'тШХ',
+      icon: '💬',
       name: 'Kundalik suhbat',
       desc: 'Do\'st bilan erkin muloqot',
       opener: "Hi there! I'm your AI speaking partner. Let's chat in English. How are you doing today?",
@@ -21,7 +21,7 @@
     },
     {
       id: 'ielts1',
-      icon: 'ЁЯОУ',
+      icon: '🎙️',
       name: 'IELTS Part 1',
       desc: 'Savol-javob mashqi',
       opener: "Hello! I'll ask you IELTS Speaking Part 1 questions. Let's start: Do you work or are you a student?",
@@ -41,7 +41,7 @@
     },
     {
       id: 'travel',
-      icon: 'тЬИя╕П',
+      icon: '✈️',
       name: 'Sayohat',
       desc: 'Mehmonxona/aeroport dialog',
       opener: "Welcome! Imagine you just arrived at a hotel in London. I'm the receptionist. How can I help you today?",
@@ -60,7 +60,7 @@
     },
     {
       id: 'restaurant',
-      icon: 'ЁЯН╜я╕П',
+      icon: '💼',
       name: 'Restoran',
       desc: 'Menyu buyurtma berish',
       opener: "Good evening! Welcome to our restaurant. Have you dined with us before? A table for how many people?",
@@ -68,7 +68,7 @@
         "Perfect. Would you like to sit by the window or in a quieter area?",
         "Here's our menu. Our specials today are grilled salmon and mushroom risotto. Would you like to start with something to drink?",
         "Excellent choice. Are you ready to order your main course, or do you need a few more minutes?",
-        "Great. How would you like your steak cooked тАФ rare, medium, or well done?",
+        "Great. How would you like your steak cooked — rare, medium, or well done?",
         "Would you like any side dishes or a salad with that?",
         "Perfect. I'll get that started for you. Anything else for now?",
         "How is everything tasting? Would you like to see the dessert menu?",
@@ -79,7 +79,7 @@
     },
     {
       id: 'interview',
-      icon: 'ЁЯТ╝',
+      icon: '☕',
       name: 'Ish suhbati',
       desc: 'Job interview mashqi',
       opener: "Good morning! Thank you for coming in today. I'm the hiring manager. Could you please introduce yourself?",
@@ -98,7 +98,7 @@
     },
     {
       id: 'freetalk',
-      icon: 'ЁЯМЯ',
+      icon: '🛒',
       name: 'Erkin mavzu',
       desc: 'Istalgan mavzuda suhbat',
       opener: "Hello! Today let's talk about something you're passionate about. What topic interests you most right now?",
@@ -134,6 +134,7 @@
   let aisIsRecording = false;
   let aisContinuous = false;   // doimiy tinglash rejimi (bir marta ruxsat -> uzluksiz suhbat)
   let aisTurnBusy = false;     // foydalanuvchi javobi qayta ishlanmoqda
+  let aisNoSpeechCount = 0;
   let aisResumeTimer = null;
 
   /* ---------- AI Speaking: tiniq va ravon ovoz (TTS) ---------- */
@@ -240,7 +241,7 @@
       } else {
         u.lang = 'en-US';
       }
-      // Sekinroq va bir xil balandlik тАФ talaffuz aniq eshitiladi.
+      // Sekinroq va bir xil balandlik — talaffuz aniq eshitiladi.
       u.rate = 0.92;
       u.pitch = 1.0;
       u.volume = 1.0;
@@ -257,7 +258,7 @@
 
       u.onend = finishChunk;
       u.onerror = function(ev){
-        // cancel/interrupted тАФ yangi javob boshlangan bo'lishi mumkin
+        // cancel/interrupted — yangi javob boshlangan bo'lishi mumkin
         if(ev && (ev.error === 'interrupted' || ev.error === 'canceled')){
           finished = true;
           if(watchdog) clearTimeout(watchdog);
@@ -266,7 +267,7 @@
         finishChunk();
       };
 
-      // Ba'zi brauzerlarda onend kelmay qoladi тАФ suhbat tiqilib qolmasin.
+      // Ba'zi brauzerlarda onend kelmay qoladi — suhbat tiqilib qolmasin.
       const words = part.split(/\s+/).filter(Boolean).length;
       watchdog = setTimeout(finishChunk, Math.max(2600, words * 460 + 1200));
 
@@ -337,15 +338,15 @@
       if(!note || note.dataset.aiStatus) return;
       note.dataset.aiStatus = '1';
       const badge = (h && h.aiEnabled)
-        ? '<div style="margin-bottom:5px;">ЁЯЯв <b>Haqiqiy AI ulangan</b> ┬╖ ' + escapeHtml(h.provider || 'AI') + '</div>'
-        : '<div style="margin-bottom:5px;">ЁЯЯб AI backend kaliti sozlanmagan тАФ suhbat lokal rejimda ishlaydi</div>';
+        ? '<div style="margin-bottom:5px;">✅ <b>Haqiqiy AI ulangan</b> · ' + escapeHtml(h.provider || 'AI') + '</div>'
+        : '<div style="margin-bottom:5px;">⚠️ AI backend kaliti sozlanmagan — suhbat lokal rejimda ishlaydi</div>';
       note.innerHTML = badge + note.innerHTML;
     });
   }
 
   function aisRenderIntro(){
     aisState.screen = 'intro';
-    // AVTOMATIK stsenariy tanlanadi тАФ scenario grid olib tashlandi
+    // AVTOMATIK stsenariy tanlanadi — scenario grid olib tashlandi
     // Har safar boshqa stsenariy tanlanadi (xilma-xillik uchun)
     if(!aisState.scenario){
       aisState.scenario = AIS_SCENARIOS[Math.floor(Math.random() * AIS_SCENARIOS.length)];
@@ -359,7 +360,7 @@
       colorClass: 'al-emerald',
       heroSvg: heroSvg,
       title: 'AI Speaking',
-      sub: 'Sun\'iy intellekt bilan real-vaqt inglizcha suhbat тАФ ' + s.icon + ' ' + s.name + ' stsenariyisi',
+      sub: 'Sun\'iy intellekt bilan real-vaqt inglizcha suhbat — ' + s.icon + ' ' + s.name + ' stsenariyisi',
       chips: [
         { svg: chatSvg, text: 'Real-vaqt suhbat' },
         { svg: clockSvg, text: s.name },
@@ -367,15 +368,15 @@
       ],
       howtoHead: 'QANDAY ISHLATISH?',
       steps: [
-        { txt: 'AI birinchi savolni beradi тАФ siz <b>mikrofon</b> orqali gapiring yoki <b>matn</b> yozing' },
+        { txt: 'AI birinchi savolni beradi — siz <b>mikrofon</b> orqali gapiring yoki <b>matn</b> yozing' },
         { txt: 'Har bir javobingizdan so\'ng AI <b>fikr-mulohaza</b> beradi va keyingi savolni beradi' },
-        { txt: 'Suhbat <b>' + s.name + '</b> mavzusida bo\'lib o\'tadi тАФ ' + s.desc },
-        { txt: 'Kamida <b>3 ta savol-javob</b> va <b>20+ so\'z</b> kerak тАФ aks holda natija saqlanmaydi' }
+        { txt: 'Suhbat <b>' + s.name + '</b> mavzusida bo\'lib o\'tadi — ' + s.desc },
+        { txt: 'Kamida <b>3 ta savol-javob</b> va <b>20+ so\'z</b> kerak — aks holda natija saqlanmaydi' }
       ],
-      note: 'ЁЯТб Mikrofon orqali gapiring (Chrome tavsiya etiladi) yoki matn kiriting. AI javoblarni ovozli eshitish uchun TTS yoqilgan.',
+      note: '💡 Mikrofon orqali gapiring (Chrome tavsiya etiladi) yoki matn kiriting. AI javoblarni ovozli eshitish uchun TTS yoqilgan.',
       btnText: 'Suhbatni boshlash',
       btnAction: 'aisStart()',
-      motivate: 'Erkin gapirish тАФ til o\'rganishning eng tezkor yo\'li! Stsenariy har safar avtomatik tanlanadi'
+      motivate: 'Erkin gapirish — til o\'rganishning eng tezkor yo\'li! Stsenariy har safar avtomatik tanlanadi'
     });
   }
 
@@ -462,12 +463,12 @@
     document.getElementById('aispeaking-content').innerHTML = `
       <div class="ais-voice-screen">
         <div class="ais-voice-top">
-          <button class="ais-voice-mute ${aisState.ttsOn ? '' : 'muted'}" id="ais-mute-btn" onclick="aisToggleMute()" title="${aisState.ttsOn ? 'Ovozni o\'chirish' : 'Ovozni yoqish'}">${aisState.ttsOn ? 'ЁЯФК' : 'ЁЯФЗ'}</button>
+          <button class="ais-voice-mute ${aisState.ttsOn ? '' : 'muted'}" id="ais-mute-btn" onclick="aisToggleMute()" title="${aisState.ttsOn ? 'Ovozni o\'chirish' : 'Ovozni yoqish'}"><span class="ic">${aisState.ttsOn ? '🔊' : '🔇'}</span><span class="onoff" id="ais-mute-label">${aisState.ttsOn ? 'ON' : 'OFF'}</span></button>
           <div class="ais-voice-timer-block">
-            <div class="ais-voice-timer">тП▒ <span id="ais-vtimer">${mm}:${ss}</span></div>
+            <div class="ais-voice-timer">⏱️ <span id="ais-vtimer">${mm}:${ss}</span></div>
             <div class="ais-voice-counter">Suhbat: <span id="ais-vcount">${aisState.turns}</span> ta savol-javob</div>
           </div>
-          <button class="ais-voice-end" onclick="aisEndSession()" title="Tugatish">тЬХ</button>
+          <button class="ais-voice-end" onclick="aisEndSession()" title="Tugatish">✕</button>
         </div>
 
         <div id="ais-fb-toast-wrap"></div>
@@ -476,32 +477,34 @@
           <div class="ais-voice-ring" id="ais-voice-ring">
             <div class="ais-voice-logo">${AIS_LOGO_SVG}</div>
           </div>
-          <div class="ais-voice-status" id="ais-voice-status">ALILM gapiryapti...</div>
-          <div class="ais-voice-hint" id="ais-voice-hint">Ingliz tilida gapiring...</div>
+          <div class="ais-voice-status" id="ais-voice-status">Tayyor</div>
+          <div class="ais-voice-hint" id="ais-voice-hint">Mikrofon tugmasini bosing yoki matn yozing</div>
+          <div class="ais-live-reply" id="ais-live-reply" style="display:none;"></div>
         </div>
 
         <div class="ais-voice-transcript-toggle" id="ais-tr-toggle" onclick="aisToggleTranscript()">
           <span>Suhbat tarixi (<span id="ais-vmsg-count">${aisState.messages.length}</span>)</span>
-          <span class="chev">тЦ╛</span>
+          <span class="chev">▾</span>
         </div>
         <div class="ais-voice-transcript" id="ais-voice-transcript"></div>
 
         <div class="ais-voice-bottom">
           <button class="ais-voice-mic" id="ais-voice-mic" onclick="aisToggleMic()" title="Gapirish">
-            <span id="ais-voice-mic-ic">ЁЯОд</span>
+            <span id="ais-voice-mic-ic">🎤</span>
           </button>
           <div class="ais-voice-mic-label" id="ais-voice-mic-label">Mikrofonni bosing va gapiring</div>
           <div style="margin-top:8px;width:100%;">
-            <div id="ais-text-toggle" style="text-align:center;font-size:11.5px;color:rgba(255,255,255,0.7);cursor:pointer;text-decoration:underline;margin-bottom:6px;" onclick="aisToggleTextInput()">Yoki matn orqali yozing тМи</div>
+            <div id="ais-text-toggle" style="text-align:center;font-size:11.5px;color:rgba(255,255,255,0.7);cursor:pointer;text-decoration:underline;margin-bottom:6px;" onclick="aisToggleTextInput()">Yoki matn orqali yozing →</div>
             <div id="ais-text-row" style="display:none;gap:8px;">
               <input type="text" class="ais-text-field" id="ais-text" style="background:rgba(255,255,255,0.95);color:#312e81;border-color:rgba(255,255,255,0.3);" placeholder="Javobingizni yozing..." onkeydown="if(event.key==='Enter') aisSendText()">
-              <button class="ais-send-btn" onclick="aisSendText()">тЮд</button>
+              <button class="ais-send-btn" onclick="aisSendText()">➤</button>
             </div>
           </div>
         </div>
       </div>`;
     // transcriptni to'ldirish
     aisRenderTranscript();
+    aisShowLiveReply();
     // timer
     if(aisRecTimer) clearInterval(aisRecTimer);
     aisRecTimer = setInterval(() => {
@@ -527,30 +530,53 @@
     if(state === 'idle'){
       if(status) status.textContent = 'Tayyor';
       if(hint) hint.textContent = 'Ingliz tilida gapiring...';
-      if(micIc) micIc.textContent = 'ЁЯОд';
+      if(micIc) micIc.textContent = '🎤';
       if(micLbl) micLbl.textContent = 'Mikrofonni bosing va gapiring';
     } else if(state === 'listening'){
       ring.classList.add('listening');
       if(status) status.textContent = 'Siz gapiryapsiz...';
       if(hint) hint.textContent = 'To\'xtatish uchun yana bosing';
       if(mic) mic.classList.add('recording');
-      if(micIc) micIc.textContent = 'тП╣';
+      if(micIc) micIc.textContent = '⏹';
       if(micLbl) micLbl.textContent = 'Gapiring...';
     } else if(state === 'ai_speaking'){
       ring.classList.add('ai-active');
       if(status) status.textContent = 'ALILM gapiryapti...';
       if(hint) hint.textContent = 'Tinglang...';
       if(mic) mic.classList.add('disabled');
-      if(micIc) micIc.textContent = 'ЁЯОз';
+      if(micIc) micIc.textContent = '🔈';
       if(micLbl) micLbl.textContent = 'AI javob bermoqda';
     } else if(state === 'processing'){
       ring.classList.add('ai-active');
       if(status) status.textContent = 'O\'ylabmoqda...';
       if(hint) hint.textContent = 'Iltimos, kuting';
       if(mic) mic.classList.add('disabled');
-      if(micIc) micIc.textContent = 'тП│';
+      if(micIc) micIc.textContent = '⏳';
       if(micLbl) micLbl.textContent = 'AI tayyorlanmoqda';
     }
+  }
+
+  /* Ekranda ko'rinadigan yordamchilar */
+  function aisHint(t){
+    const h = document.getElementById('ais-voice-hint');
+    if(h) h.textContent = t;
+  }
+
+  function aisShowTextRow(){
+    const row = document.getElementById('ais-text-row');
+    if(row) row.style.display = 'flex';
+  }
+
+  // AI javobini asosiy ekranda ko'rsatish (yashirilgan tarixga qaramasdan)
+  function aisShowLiveReply(){
+    const el = document.getElementById('ais-live-reply');
+    if(!el) return;
+    const last = aisState.messages.slice().reverse().find(m => m.role === 'ai');
+    if(!last){ el.style.display = 'none'; el.innerHTML = ''; return; }
+    el.style.display = 'block';
+    el.innerHTML = '<div class="ais-live-name">ALILM</div>'
+      + '<div class="ais-live-text">' + escapeHTML(last.text) + '</div>'
+      + (last.feedback ? '<div class="ais-live-fb">' + escapeHTML(last.feedback) + '</div>' : '');
   }
 
   function aisToggleMute(){
@@ -558,7 +584,10 @@
     const btn = document.getElementById('ais-mute-btn');
     if(btn){
       btn.classList.toggle('muted', !aisState.ttsOn);
-      btn.textContent = aisState.ttsOn ? 'ЁЯФК' : 'ЁЯФЗ';
+      const ic = btn.querySelector('.ic');
+      if(ic) ic.textContent = aisState.ttsOn ? '🔊' : '🔇';
+      const lbl = document.getElementById('ais-mute-label');
+      if(lbl) lbl.textContent = aisState.ttsOn ? 'ON' : 'OFF';
       btn.title = aisState.ttsOn ? 'Ovozni o\'chirish' : 'Ovozni yoqish';
     }
     if(!aisState.ttsOn){
@@ -595,16 +624,16 @@
     if(m.role === 'ai'){
       return `
         <div class="ais-msg ais-msg-ai">
-          <div class="ais-msg-ic">ЁЯдЦ</div>
+          <div class="ais-msg-ic">🤖</div>
           <div class="ais-msg-bubble">
             ${escapeHTML(m.text)}
-            ${m.feedback ? `<div class="ais-msg-fb">ЁЯТб ${escapeHTML(m.feedback)}</div>` : ''}
+            ${m.feedback ? `<div class="ais-msg-fb">💡 ${escapeHTML(m.feedback)}</div>` : ''}
           </div>
         </div>`;
     } else {
       return `
         <div class="ais-msg ais-msg-user">
-          <div class="ais-msg-ic">ЁЯзС</div>
+          <div class="ais-msg-ic">🧑</div>
           <div class="ais-msg-bubble">${escapeHTML(m.text)}</div>
         </div>`;
     }
@@ -619,7 +648,7 @@
     if(!wrap) return;
     const t = document.createElement('div');
     t.className = 'ais-voice-fb-toast ' + (type || '');
-    t.textContent = 'ЁЯТб ' + text;
+    t.textContent = '💡 ' + text;
     wrap.appendChild(t);
     setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .4s'; }, 2800);
     setTimeout(() => { if(t.parentNode) t.remove(); }, 3300);
@@ -627,6 +656,7 @@
 
   function aisAddAIMessage(text, feedback){
     aisState.messages.push({role:'ai', text:text, feedback:feedback});
+    aisShowLiveReply();
     // transcript yangilash (agar ochiq bo'lsa)
     if(aisTranscriptOpen) aisRenderTranscript();
     else {
@@ -643,7 +673,7 @@
         aisResumeMic();
       });
     } else {
-      // TTS yoqilmagan тАФ taxminiy davomdan keyin idle
+      // TTS yoqilmagan — taxminiy davomdan keyin idle
       const words = text.trim().split(/\s+/).filter(Boolean).length;
       const dur = Math.max(1800, Math.min(9000, words * 380 + 900));
       setTimeout(() => { if(aisVoiceState === 'ai_speaking') aisSetVoiceState('idle'); aisResumeMic(); }, dur);
@@ -681,7 +711,9 @@
     rec.maxAlternatives = 1;
     rec.onstart = () => {
       aisIsRecording = true;
+      aisNoSpeechCount = 0;
       if(aisVoiceState !== 'ai_speaking' && aisVoiceState !== 'processing') aisSetVoiceState('listening');
+      aisHint('Gapiring — sizni eshitayapman...');
     };
     rec.onresult = (ev) => {
       if(aisTurnBusy) return;
@@ -694,15 +726,13 @@
         else interim += t + ' ';
       }
       interim = interim.trim();
-      if(interim){
-        const hint = document.getElementById('ais-voice-hint');
-        if(hint) hint.textContent = 'ЁЯОЩ ' + interim.slice(0, 90);
-      }
+      if(interim) aisHint('👂 ' + interim.slice(0, 120));
       if(finalTxt.trim()){
         aisTurnBusy = true;
-        try { rec.stop(); } catch(e){}
         aisIsRecording = false;
+        try { rec.stop(); } catch(e){}
         aisSetVoiceState('processing');
+        aisHint('Siz: ' + finalTxt.trim().slice(0, 120));
         setTimeout(() => {
           aisTurnBusy = false;
           aisHandleUserInput(finalTxt.trim());
@@ -711,15 +741,34 @@
     };
     rec.onerror = (ev) => {
       aisIsRecording = false;
-      if(ev.error === 'not-allowed' || ev.error === 'service-not-allowed'){
+      const err = String(ev.error || '');
+      if(err === 'not-allowed' || err === 'service-not-allowed'){
         aisContinuous = false;
         aisSetVoiceState('idle');
-        const row = document.getElementById('ais-text-row');
-        if(row) row.style.display = 'flex';
+        aisHint('Mikrofon ruxsati berilmadi — matn kiriting');
+        aisShowTextRow();
         alert('Mikrofon ruxsati berilmadi. Matn maydonidan foydalanishingiz mumkin.');
         return;
       }
-      // no-speech / aborted / network тАФ suhbatni davom ettiramiz
+      if(err === 'audio-capture'){
+        aisContinuous = false;
+        aisSetVoiceState('idle');
+        aisHint('Mikrofon topilmadi — matn kiriting');
+        aisShowTextRow();
+        return;
+      }
+      if(err === 'no-speech'){
+        aisNoSpeechCount++;
+        if(aisNoSpeechCount >= 2){
+          aisContinuous = false;
+          aisSetVoiceState('idle');
+          aisHint('Ovoz eshitilmadi — matn kiriting yoki qayta bosing');
+          aisShowTextRow();
+          return;
+        }
+      }
+      if(err === 'network') aisHint('Tarmoq xatosi — qayta urinish...');
+      if(err === 'aborted') return;
       if(aisContinuous) aisResumeMic();
       else if(aisVoiceState === 'listening') aisSetVoiceState('idle');
     };
@@ -745,48 +794,64 @@
       if(aisIsRecording || aisTurnBusy) return;
       if(aisVoiceState === 'ai_speaking' || aisVoiceState === 'processing') return;
       try {
-        if(!aisRecognition) aisRecognition = aisBuildRecognition();
+        if(aisRecognition){ try { aisRecognition.abort(); } catch(e){} }
+        aisRecognition = aisBuildRecognition();
         if(aisRecognition) aisRecognition.start();
-      } catch(e){ /* allaqachon ishga tushgan bo'lsa тАФ e'tiborsiz */ }
-    }, 420);
+      } catch(e){
+        aisHint('Mikrofon qayta ishga tushmadi — matn kiriting');
+        aisShowTextRow();
+      }
+    }, 380);
   }
 
   function aisToggleMic(){
-    if(aisVoiceState === 'ai_speaking' || aisVoiceState === 'processing') return;
-    // Ikkinchi bosish тАФ suhbat rejimini to'xtatish
+    // Ikkinchi bosish — suhbat rejimini to'xtatish
     if(aisIsRecording || aisContinuous){
       aisContinuous = false;
       aisTurnBusy = false;
       clearTimeout(aisResumeTimer);
       if(aisRecognition){ try { aisRecognition.abort(); } catch(e){} }
+      aisRecognition = null;
       aisIsRecording = false;
+      aisNoSpeechCount = 0;
       aisSetVoiceState('idle');
+      aisHint('Mikrofon o\'chirildi');
       const lbl = document.getElementById('ais-voice-mic-label');
       if(lbl) lbl.textContent = 'Mikrofonni bosing va gapiring';
       return;
     }
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if(!SR){
-      const row = document.getElementById('ais-text-row');
-      if(row) row.style.display = 'flex';
+      aisShowTextRow();
       const tog = document.getElementById('ais-text-toggle');
-      if(tog) tog.textContent = 'Brauzeringiz mikrofonni qo\'llab-quvvatlamaydi тАФ matn kiriting тМи';
-      alert('Sizning brauzeringiz mikrofon orqali nutqni tanib olishni qo\'llab-quvvatlamaydi. Iltimos, matn maydonidan foydalaning yoki Chrome brauzerida urinib ko\'ring.');
+      if(tog) tog.textContent = 'Brauzer mikrofonni qo\'llab-quvvatlamaydi — matn kiriting →';
+      aisHint('Brauzer mikrofonni qo\'llab-quvvatlamaydi — matn yozing');
+      alert('Sizning brauzeringiz nutqni tanib olishni qo\'llab-quvvatlamaydi. Matn maydonidan foydalaning yoki Chrome brauzerida urinib ko\'ring.');
       return;
     }
+    // AI gapirayotgan bo'lsa ham mikrofonni yoqish mumkin
+    try { aisStopTts(); } catch(e){}
+    if(aisVoiceState === 'ai_speaking' || aisVoiceState === 'processing') aisSetVoiceState('idle');
+    aisContinuous = true;
+    aisTurnBusy = false;
+    aisNoSpeechCount = 0;
     try {
-      aisStopTts();
-      aisContinuous = true;
-      aisTurnBusy = false;
-      if(!aisRecognition) aisRecognition = aisBuildRecognition();
+      if(aisRecognition){ try { aisRecognition.abort(); } catch(e){} }
+      aisRecognition = aisBuildRecognition();
       aisRecognition.start();
+      aisHint('Mikrofon yoqildi — gapiring...');
       const lbl = document.getElementById('ais-voice-mic-label');
-      if(lbl) lbl.textContent = 'Suhbat rejimi yoqildi тАФ to\'xtatish uchun bosing';
+      if(lbl) lbl.textContent = 'Suhbat rejimi yoqildi — to\'xtatish uchun bosing';
     } catch(e){
-      try { aisRecognition = aisBuildRecognition(); aisRecognition.start(); }
-      catch(e2){
+      try {
+        aisRecognition = aisBuildRecognition();
+        aisRecognition.start();
+        aisHint('Mikrofon yoqildi — gapiring...');
+      } catch(e2){
         aisContinuous = false;
         aisSetVoiceState('idle');
+        aisHint('Mikrofon ishga tushmadi — matn kiriting');
+        aisShowTextRow();
         alert('Mikrofon ishga tushmadi: ' + (e2.message || e2));
       }
     }
@@ -814,7 +879,7 @@
     const fb = aisGenerateFeedback(text);
     aisState.feedback.push(fb);
 
-    // Suhbat yakuni тАФ lokal xayrlashuv
+    // Suhbat yakuni — lokal xayrlashuv
     if(aisState.turns >= 8){
       setTimeout(() => {
         if(aisState.screen !== 'chat') return;
@@ -824,7 +889,7 @@
       return;
     }
 
-    // AI backendga so'rov (OpenAI/Gemini). Ishlaymasa тАФ lokal savolga qaytamiz.
+    // AI backendga so'rov (OpenAI/Gemini). Ishlaymasa — lokal savolga qaytamiz.
     const history = aisState.messages.slice(-14).map(function(m){
       return { role: m.role === 'ai' ? 'assistant' : 'user', content: m.text };
     });
@@ -838,7 +903,7 @@
       },
       messages: history,
       message: text
-    }, 60000).then(function(data){
+    }, 25000).then(function(data){
       if(aisState.screen !== 'chat') return;
       const reply = data && data.reply ? String(data.reply).trim() : '';
       const aiFb = data && data.feedback ? String(data.feedback).trim() : '';
@@ -847,6 +912,7 @@
     }).catch(function(err){
       if(aisState.screen !== 'chat') return;
       if(err && err.status !== 503) console.warn('AI chat fallback:', err.message || err);
+      aisHint('AI javob bermadi — lokal rejimda davom etamiz');
       setTimeout(function(){
         if(aisState.screen !== 'chat') return;
         const nextQ = aisPickNextQuestion(text);
@@ -925,7 +991,7 @@
     // === HAQIQIY BAHOLASH ===
     // Foydalanuvchi kamida 3 ta suhbat (savol-javob) qilishi kerak
     if(aisState.turns < 3 || aisState.words < 20){
-      // Suhbat yetarli emas тАФ natija saqlanmaydi
+      // Suhbat yetarli emas — natija saqlanmaydi
       testProgress.aispeaking = {
         completed: false,
         band: 0,
@@ -937,11 +1003,11 @@
         minutes: mins
       };
       if(typeof saveUserProgress === 'function') saveUserProgress();
-      // Natija ekrani тАФ ogohlantirish
+      // Natija ekrani — ogohlantirish
       document.getElementById('aispeaking-content').innerHTML = `
         <div class="ais-wrap">
           <div class="ais-res-card" style="background:linear-gradient(135deg,#be185d,#e11d48,#ec4899);">
-            <div class="ais-res-icon">тЪая╕П</div>
+            <div class="ais-res-icon">⚠️</div>
             <div class="ais-res-title">Suhbat yetarli emas</div>
             <div class="ais-res-sub" style="opacity:.92;">AI Speaking baholanishi uchun kamida 3 ta savol-javob va 20+ so'z kerak</div>
           </div>
@@ -950,10 +1016,10 @@
             <div class="ais-stat-item"><div class="ais-stat-num">${aisState.words}</div><div class="ais-stat-label">SO'ZLAR</div></div>
             <div class="ais-stat-item"><div class="ais-stat-num">${mins}</div><div class="ais-stat-label">DAQIQA</div></div>
           </div>
-          <div class="ais-comeback">Iltimos, suhbatni davom ettiring тАФ AI sizga savol beradi, siz javob bering.</div>
+          <div class="ais-comeback">Iltimos, suhbatni davom ettiring — AI sizga savol beradi, siz javob bering.</div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <button class="ais-btn" style="flex:1;" onclick="openAISpeaking()">ЁЯФД Qayta boshlash</button>
-            <button class="ais-btn-outline" style="flex:1;" onclick="switchTab('home')">ЁЯПа Bosh sahifa</button>
+            <button class="ais-btn" style="flex:1;" onclick="openAISpeaking()">🔄 Qayta boshlash</button>
+            <button class="ais-btn-outline" style="flex:1;" onclick="switchTab('home')">🏠 Bosh sahifa</button>
           </div>
         </div>`;
       return;
@@ -964,16 +1030,16 @@
     const shortCount = aisState.feedback.filter(f => f.type === 'short').length;
     const longCount = aisState.feedback.filter(f => f.type === 'long').length;
 
-    // Asosiy ball тАФ yaxshi javoblar ulushi (0-100%)
+    // Asosiy ball — yaxshi javoblar ulushi (0-100%)
     let scorePct = aisState.turns > 0 ? Math.round((goodCount / aisState.turns) * 60) : 0;
-    // Qo'shimcha ball тАФ so'z soni (50+ so'z = +20, 100+ = +30, 200+ = +40)
+    // Qo'shimcha ball — so'z soni (50+ so'z = +20, 100+ = +30, 200+ = +40)
     if(aisState.words >= 200) scorePct += 25;
     else if(aisState.words >= 100) scorePct += 18;
     else if(aisState.words >= 50) scorePct += 12;
-    // Qo'shimcha ball тАФ davomiylik (3+ daqiqa = +10, 5+ = +15)
+    // Qo'shimcha ball — davomiylik (3+ daqiqa = +10, 5+ = +15)
     if(mins >= 5) scorePct += 15;
     else if(mins >= 3) scorePct += 10;
-    // Jazo тАФ qisqa javoblar ko'p bo'lsa (-5 har biri, max -20)
+    // Jazo — qisqa javoblar ko'p bo'lsa (-5 har biri, max -20)
     scorePct -= Math.min(20, shortCount * 5);
     // Clamp 30-100
     const clampedPct = Math.max(30, Math.min(100, scorePct));
@@ -1013,16 +1079,16 @@
     const longCount = aisState.feedback.filter(f => f.type === 'long').length;
     const tips = [];
     if(shortCount > 0) tips.push('Javoblaringizni batafsilroq, 5-10 so\'zli to\'liq jumlalar bilan yozing.');
-    if(goodCount > 0) tips.push('Bog\'lovchi so\'zlar va murakkab gaplarni davom ettiring тАФ bu IELTSda yuqori ball beradi.');
+    if(goodCount > 0) tips.push('Bog\'lovchi so\'zlar va murakkab gaplarni davom ettiring — bu IELTSda yuqori ball beradi.');
     if(longCount === 0 && shortCount === 0) tips.push('Har bir savolga 2-3 ta bog\'langan jumla bilan javob bering.');
-    if(aisState.words < 50) tips.push('Ko\'proq so\'z ishlatishga harakat qiling тАФ maqsad 60+ so\'z.');
-    tips.push('Har kuni 5-10 daqiqalik AI suhbat mashqi qiling тАФ sezilarli yaxshilanish bo\'ladi.');
+    if(aisState.words < 50) tips.push('Ko\'proq so\'z ishlatishga harakat qiling — maqsad 60+ so\'z.');
+    tips.push('Har kuni 5-10 daqiqalik AI suhbat mashqi qiling — sezilarli yaxshilanish bo\'ladi.');
     document.getElementById('aispeaking-content').innerHTML = `
       <div class="ais-wrap">
         <div class="ais-res-card">
-          <div class="ais-res-icon">ЁЯОЙ</div>
+          <div class="ais-res-icon">🎉</div>
           <div class="ais-res-title">Suhbat yakunlandi!</div>
-          <div class="ais-res-sub">${aisState.scenario.icon} ${aisState.scenario.name} тАФ ${mins} daqiqa, ${aisState.turns} suhbat</div>
+          <div class="ais-res-sub">${aisState.scenario.icon} ${aisState.scenario.name} — ${mins} daqiqa, ${aisState.turns} suhbat</div>
         </div>
         <div class="ais-stats-grid">
           <div class="ais-stat-item"><div class="ais-stat-num">${aisState.turns}</div><div class="ais-stat-label">SUHBAT</div></div>
@@ -1030,21 +1096,21 @@
           <div class="ais-stat-item"><div class="ais-stat-num">${avgW}</div><div class="ais-stat-label">O'RT. SO'Z/SUHBAT</div></div>
         </div>
         <div class="ais-feedback">
-          <strong>ЁЯУК Baholash:</strong> Taxminiy Band <strong style="color:#a855f7;">${band}</strong> (${pct}%)
+          <strong>📊 Baholash:</strong> Taxminiy Band <strong style="color:#a855f7;">${band}</strong> (${pct}%)
           <ul>
             <li><strong>Yaxshi javoblar:</strong> ${goodCount} ta</li>
             <li><strong>Qisqa javoblar:</strong> ${shortCount} ta</li>
             <li><strong>Uzun javoblar:</strong> ${longCount} ta</li>
           </ul>
-          <strong style="display:block;margin-top:8px;">ЁЯТб Tavsiyalar:</strong>
+          <strong style="display:block;margin-top:8px;">💡 Tavsiyalar:</strong>
           <ul>
             ${tips.map(t => '<li>' + t + '</li>').join('')}
           </ul>
         </div>
-        <div class="ais-comeback">Har kuni 5-10 daqiqalik AI suhbat тАФ erkin gapirishingiz tez yaxshilanadi! ЁЯМ▒</div>
+        <div class="ais-comeback">Har kuni 5-10 daqiqalik AI suhbat — erkin gapirishingiz tez yaxshilanadi! 🚀</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <button class="ais-btn" style="flex:1;" onclick="openAISpeaking()">ЁЯФД Yana suhbat</button>
-          <button class="ais-btn-outline" style="flex:1;" onclick="switchTab('home')">ЁЯПа Bosh sahifa</button>
+          <button class="ais-btn" style="flex:1;" onclick="openAISpeaking()">🔄 Yana suhbat</button>
+          <button class="ais-btn-outline" style="flex:1;" onclick="switchTab('home')">🏠 Bosh sahifa</button>
         </div>
       </div>`;
   }
@@ -1060,7 +1126,7 @@
     aisIsRecording = false;
   }
 
-  /* Orqaga тАФ suhbat davomida tasdiq so'raladi */
+  /* Orqaga — suhbat davomida tasdiq so'raladi */
   function aispeakingBack(){
     const inProgress = (aisState.screen === 'chat' && aisState.turns > 0) || aisState.screen === 'loading';
     if(inProgress){
