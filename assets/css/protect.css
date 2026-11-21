@@ -1,0 +1,93 @@
+/* ============================================================
+   Englify — Saytdagi kontentni himoya qilish
+   Nusxa olish, matn tanlash, rasm/surat saqlash va chop etishning
+   oldini oladi. Faqat matn kiritish maydonlari istisno:
+   input / textarea / select / contenteditable — ular normal ishlaydi.
+   ============================================================ */
+
+/* 1. Butun saytda matn tanlash, sudrash va uzoq bosish menyusini o'chiramiz */
+*, *::before, *::after {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+  -webkit-user-drag: none !important;
+  -khtml-user-drag: none !important;
+  -webkit-touch-callout: none !important;
+}
+
+/* 2. Foydalanuvchi yozadigan maydonlarda tanlash qaytadan yoqiladi */
+input,
+textarea,
+select,
+[contenteditable="true"],
+[contenteditable=""],
+[contenteditable="plaintext-only"] {
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  user-select: text !important;
+  -webkit-touch-callout: default !important;
+}
+
+/* 3. Rasmlar va SVG larni sudrab saqlashga yo'l qo'ymaymiz */
+img, svg, canvas, video, picture {
+  -webkit-user-drag: none !important;
+  -khtml-user-drag: none !important;
+  -webkit-touch-callout: none !important;
+  pointer-events: auto;
+}
+
+/* 4. Taqiqlangan amal haqida kichik xabar */
+.englify-protect-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 88px;
+  transform: translate(-50%, 14px);
+  z-index: 2147483646;
+  pointer-events: none;
+  opacity: 0;
+  max-width: 90vw;
+  white-space: nowrap;
+  padding: 9px 16px;
+  border-radius: 999px;
+  color: #f9fafb;
+  background: rgba(17, 24, 39, .94);
+  border: 1px solid rgba(255, 255, 255, .16);
+  box-shadow: 0 12px 30px -10px rgba(0, 0, 0, .6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font: 600 12.5px/1.35 'Manrope', system-ui, -apple-system, sans-serif;
+  transition: opacity .2s ease, transform .2s ease;
+}
+.englify-protect-toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* 5. Boshqa ilovaga/tabga o'tganda kontentni yashiruvchi parda */
+#englify-protect-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483645;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(4, 8, 18, .28);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  opacity: 0;
+  transition: opacity .18s ease;
+}
+#englify-protect-veil.on { opacity: 1; }
+#englify-protect-veil span {
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .12);
+  border: 1px solid rgba(255, 255, 255, .2);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  font: 700 14px/1.4 'Manrope', system-ui, -apple-system, sans-serif;
+}

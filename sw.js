@@ -11,7 +11,7 @@
 
 'use strict';
 
-const VERSION = 'englify-pwa-v3';
+const VERSION = 'englify-pwa-v4';
 const CORE_CACHE = VERSION + '-core';
 const RUNTIME_CACHE = VERSION + '-runtime';
 
@@ -47,6 +47,7 @@ const PRECACHE = [
   'assets/css/videos.css',
   'assets/css/advice.css',
   'assets/css/ios-pwa.css',
+  'assets/css/protect.css',
   'assets/js/vendor/qrcode.js',
   'assets/js/core.js',
   'assets/js/pwa.js',
@@ -70,7 +71,8 @@ const PRECACHE = [
   'assets/js/home-recent.js',
   'assets/js/theme-language.js',
   'assets/js/dictionary.js',
-  'assets/js/admin.js'
+  'assets/js/admin.js',
+  'assets/js/protect.js'
 ].map(abs);
 
 const OFFLINE_HTML = '<!DOCTYPE html><html lang="uz"><head><meta charset="utf-8">' +
