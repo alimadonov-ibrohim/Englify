@@ -9,6 +9,55 @@
       .replace(/'/g, '&#39;');
   }
 
+  // --- AI JAVOB TEKSHIRUVI (Daily / Listening / Reading) ---
+  // Natija ekrani darhol ko'rinadi, AI fonada tekshiradi — foydalanuvchi kutmaydi.
+  async function aiCheckAnswers(kind, questions, answers, context){
+    try {
+      const data = await aiApiPost('/api/ai/check-answers', {
+        kind: kind,
+        questions: questions,
+        answers: answers,
+        context: context || ''
+      }, 16000);
+      return data && Array.isArray(data.results) ? data : null;
+    } catch(e){
+      console.warn('AI javob tekshiruvi ishlamadi:', e && e.message);
+      return null;
+    }
+  }
+
+  // AI natijasini natija ekraniga qo'llash (barcha 3 bo'lim uchun umumiy).
+  // asosiy ball lokal javob kaliti bilan hisoblanadi, AI mustaqil fikrini qo'shamiz.
+  function aiCheckApply(prefix, data, total){
+    const banner = document.getElementById(prefix + '-ai-banner');
+    if(!data){
+      if(banner){
+        banner.className = 'ai-check-banner off';
+        banner.textContent = 'AI tekshiruvi mavjud emas — lokal natija ko‘rsatildi';
+      }
+      return false;
+    }
+    if(banner){
+      banner.className = 'ai-check-banner ok';
+      banner.innerHTML = '🤖 <b>AI javob tekshiruvi:</b> ' + data.results.length + '/' + total
+        + ' savol ko‘rib chiqildi' + (data.summary ? ' · ' + escapeHtml(data.summary) : '')
+        + '<span class="ai-check-hint">Ball test javob kaliti bo‘yicha hisoblanadi; AI mustaqil fikri qo‘shimcha izoh sifatida ko‘rsatiladi.</span>';
+    }
+    data.results.forEach(function(r){
+      const el = document.getElementById(prefix + '-ai-' + r.i);
+      if(!el) return;
+      let html = r.ok
+        ? '<span class="ai-ok">✓ AI: to‘g‘ri deb topdi</span>'
+        : '<span class="ai-no">✗ AI: noto‘g‘ri deb topdi'
+          + (r.correct !== null && r.correct !== undefined ? ' (AI bo‘yicha: ' + String.fromCharCode(65 + r.correct) + ')' : '')
+          + '</span>';
+      if(r.why) html += ' <span class="ai-why">' + escapeHtml(r.why) + '</span>';
+      el.innerHTML = html;
+      el.style.display = 'block';
+    });
+    return true;
+  }
+
   // AI kutish chegarasi: va'da vaqtida tugamasa, lokal kontentga o'tamiz.
   // Aks holda yuklanish ekrani 92% da abadiy qotib qoladi.
   function aiWithTimeout(promise, ms, fallback){

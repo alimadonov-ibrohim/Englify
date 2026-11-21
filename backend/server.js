@@ -1884,6 +1884,93 @@ async function handleGenerate(req, res) {
   });
 }
 
+/* Daily / Listening / Reading javoblarini AI bilan mustaqil tekshirish.
+   AI ga to'g'ri javob kaliti yuborilmaydi — u matn/savol asosida o'zi
+   javobni aniqlaydi va talaba javobi bilan solishtiradi. Natija tez qaytishi
+   uchun yengil (lite) model va qisqa chiqish ishlatiladi. */
+const CHECK_ANSWER_KINDS = ['daily', 'listening', 'reading'];
+
+async function handleCheckAnswers(req, res) {
+  const body = await readBody(req);
+  const kind = String(body.kind || '').trim();
+  if (CHECK_ANSWER_KINDS.indexOf(kind) < 0) {
+    return sendJSON(res, 400, { detail: "kind noto'g'ri. Ruxsat: " + CHECK_ANSWER_KINDS.join(', ') });
+  }
+
+  const qs = Array.isArray(body.questions) ? body.questions.slice(0, 15) : [];
+  const answers = Array.isArray(body.answers) ? body.answers.slice(0, 15) : [];
+  if (!qs.length) return sendJSON(res, 400, { detail: 'Tekshirish uchun savol yo‘q' });
+
+  const context = String(body.context || '').slice(0, 3200);
+
+  // Faqat zarur matn yuboramiz — tezlik uchun uzunlik cheklangan.
+  // `ans` (to'g'ri javob indeksi) atayin yuborilmaydi.
+  const items = qs.map(function (q, i) {
+    const item = { i: i, q: String((q && q.q) || '').slice(0, 420) };
+    const passage = String((q && q.passage) || '').slice(0, 600);
+    if (passage) item.passage = passage;
+    item.opts = Array.isArray(q && q.opts)
+      ? q.opts.slice(0, 4).map(function (x) { return String(x || '').slice(0, 170); })
+      : [];
+    const ua = answers[i];
+    item.user = (ua === null || ua === undefined || ua === '') ? null : Number(ua);
+    return item;
+  });
+
+  const system = [
+    'You are a careful IELTS answer checker.',
+    'You receive a source text (if any), multiple-choice questions with four options A-D, and the index of the option chosen by the student.',
+    'For EACH question decide independently which option (0-3) is truly correct using ONLY the given text/question.',
+    'Then compare your answer with the student answer.',
+    'Return ONLY valid JSON in this exact shape:',
+    '{"results":[{"i":0,"correct":2,"ok":false,"why":"..."}],"summary":"..."}',
+    'Rules:',
+    '- "correct" is index 0-3 of the option you believe is right.',
+    '- "ok" is true only when the student answer equals your "correct" index.',
+    '- "why" is ONE short sentence in Uzbek explaining the correct answer. Max 180 characters.',
+    '- "summary" is ONE short sentence in Uzbek with overall feedback. Max 200 characters.',
+    '- Return exactly one result per question, in the same order as received.',
+    '- If a question has no source text, rely on the question and common knowledge.'
+  ].join('\n');
+
+  const userText = 'SOURCE TEXT:\n' + (context || '(none)') + '\n\nQUESTIONS:\n' + JSON.stringify(items);
+
+  const raw = await callAI({
+    kind: 'check',
+    fast: true,
+    system: system,
+    messages: [{ role: 'user', content: userText }],
+    jsonMode: true,
+    maxTokens: 1600,
+    timeoutMs: 15000
+  });
+
+  const parsed = parseJSON(raw);
+  if (!parsed || !Array.isArray(parsed.results)) {
+    const err = new Error('AI tekshiruv natijasi o‘qilmadi');
+    err.status = 502;
+    throw err;
+  }
+
+  const results = parsed.results.slice(0, qs.length).map(function (r, i) {
+    const c = Number(r && r.correct);
+    const valid = isFinite(c) && c >= 0 && c <= 3;
+    return {
+      i: i,
+      correct: valid ? c : null,
+      ok: !!(r && (r.ok === true || r.ok === 'true')),
+      why: cleanText(r && r.why, 240)
+    };
+  });
+
+  return sendJSON(res, 200, {
+    results: results,
+    summary: cleanText(parsed.summary, 260),
+    provider: activeProvider(),
+    model: providerModel()
+  });
+}
+
 async function handleScoreSpeaking(req, res) {
   const body = await readBody(req);
   const transcript = String(body.transcript || '').trim();
@@ -1996,6 +2083,7 @@ async function handleApi(req, res, url) {
         '/api/ai/admin',
         '/api/ai/score-writing',
         '/api/ai/score-speaking',
+        '/api/ai/check-answers',
         '/api/ai/generate',
         '/api/ai/tts'
       ],
@@ -2043,6 +2131,7 @@ async function handleApi(req, res, url) {
 
   if (url === '/api/ai/chat' || url === '/api/ai/advice' || url === '/api/ai/admin' ||
       url === '/api/ai/score-writing' || url === '/api/ai/score-speaking' ||
+      url === '/api/ai/check-answers' ||
       url === '/api/ai/generate' || url === '/api/ai/tts') {
     if (req.method !== 'POST') {
       sendJSON(res, 405, { detail: 'Faqat POST' });
@@ -2063,6 +2152,7 @@ async function handleApi(req, res, url) {
       else if (url === '/api/ai/admin') await handleAdminAi(req, res);
       else if (url === '/api/ai/score-writing') await handleScoreWriting(req, res);
       else if (url === '/api/ai/score-speaking') await handleScoreSpeaking(req, res);
+      else if (url === '/api/ai/check-answers') await handleCheckAnswers(req, res);
       else if (url === '/api/ai/tts') await handleTts(req, res);
       else await handleGenerate(req, res);
     } catch (err) {

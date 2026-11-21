@@ -529,10 +529,12 @@
           </div>
         </div>
         ${lmRevDetail(d, k)}
+        <div class="ai-check-note" id="lsn-ai-${k}" style="display:none;"></div>
       </div>`;
     }).join('');
     document.getElementById('listening-content').innerHTML = `
       <div class="lsn-wrap">
+        <div class="ai-check-banner" id="lsn-ai-banner">🤖 AI javob tekshiruvi yuklanmoqda...</div>
         <div class="lsn-res-card">
           <div class="lsn-res-ring">
             <svg width="150" height="150" viewBox="0 0 120 120" style="transform:rotate(-90deg);">
@@ -558,6 +560,16 @@
         <button class="lsn-ghost" onclick="switchTab('home')">Bosh sahifa</button>
       </div>`;
     window.scrollTo(0, 0);
+    lmRunAiCheck(details);
+  }
+
+  // AI mustaqil ravishda javoblarni tekshiradi (ball lokal kalit bilan qoladi).
+  async function lmRunAiCheck(details){
+    if(!details || !details.length) return;
+    const questions = details.map(function(d){ return { q:d.q, opts:d.opts }; });
+    const answers = details.map(function(d){ return d.user; });
+    const data = await aiCheckAnswers('listening', questions, answers, (LISTEN_DATA && LISTEN_DATA.script) || '');
+    aiCheckApply('lsn', data, details.length);
   }
 
   function lmRevDetail(d, k){

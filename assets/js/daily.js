@@ -509,6 +509,16 @@
     dtRenderResult(result, false);
   }
 
+  // AI mustaqil ravishda javoblarni tekshiradi (ball lokal kalit bilan qoladi).
+  async function dtRunAiCheck(result){
+    const details = (result && result.details) || [];
+    if(!details.length) return;
+    const questions = details.map(function(d){ return { q:d.q, opts:d.opts, passage:(d.passage || '') }; });
+    const answers = details.map(function(d){ return d.user; });
+    const data = await aiCheckAnswers('daily', questions, answers, '');
+    aiCheckApply('dtx', data, details.length);
+  }
+
   function dtRenderResult(r, fromHistory){
     dtState.screen = 'result';
     const p = r.percentage;
@@ -538,10 +548,12 @@
           <span class="dtx-chip ${d.type}">${DAILY_TYPES[d.type]}</span>
         </div>
         ${dtRevDetail(d, k)}
+        <div class="ai-check-note" id="dtx-ai-${k}" style="display:none;"></div>
       </div>`;
     }).join('');
     document.getElementById('daily-content').innerHTML = `
       <div class="dtx-wrap">
+        <div class="ai-check-banner" id="dtx-ai-banner">🤖 AI javob tekshiruvi yuklanmoqda...</div>
         <div class="dtx-res-card">
           <div class="dtx-res-emoji">${emoji}</div>
           <div class="dtx-res-pct ${cls}">${p}%</div>
@@ -559,6 +571,7 @@
         <button class="dtx-btn" onclick="switchTab('home')">Bosh sahifa</button>
         ${fromHistory ? `<button class="dtx-btn-outline" style="margin-top:12px;" onclick="startDaily()">Qayta urinish</button>` : ''}
       </div>`;
+    dtRunAiCheck(r);
   }
 
   function dtRevDetail(d, k){

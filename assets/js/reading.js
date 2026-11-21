@@ -390,10 +390,12 @@ Understanding bee communication is not only fascinating but also important, beca
           </div>
         </div>
         ${rdRevDetail(d, k)}
+        <div class="ai-check-note" id="rdx-ai-${k}" style="display:none;"></div>
       </div>`;
     }).join('');
     document.getElementById('reading-content').innerHTML = `
       <div class="rdx-wrap">
+        <div class="ai-check-banner" id="rdx-ai-banner">🤖 AI javob tekshiruvi yuklanmoqda...</div>
         <div class="rdx-res-card">
           <div class="rdx-res-emoji">${emoji}</div>
           <div class="rdx-res-pct ${cls}">${pct}%</div>
@@ -410,6 +412,16 @@ Understanding bee communication is not only fascinating but also important, beca
         <button class="rdx-btn" onclick="switchTab('home')">Bosh sahifa</button>
         <button class="rdx-btn-outline" style="margin-top:12px;" onclick="openReading()">Qayta urinish</button>
       </div>`;
+    rdRunAiCheck(details);
+  }
+
+  // AI mustaqil ravishda javoblarni tekshiradi (ball lokal kalit bilan qoladi).
+  async function rdRunAiCheck(details){
+    if(!details || !details.length) return;
+    const questions = details.map(function(d){ return { q:d.q, opts:d.opts }; });
+    const answers = details.map(function(d){ return d.user; });
+    const data = await aiCheckAnswers('reading', questions, answers, (READING_DATA && READING_DATA.passage) || '');
+    aiCheckApply('rdx', data, details.length);
   }
 
   function rdRevDetail(d, k){
