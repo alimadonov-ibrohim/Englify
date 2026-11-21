@@ -399,8 +399,9 @@
             <circle id="ais-ring" cx="72" cy="72" r="54" fill="none" stroke="url(#aisGrad)" stroke-width="10" stroke-linecap="round" stroke-dasharray="339.292" stroke-dashoffset="339.292"/>
             <defs>
               <linearGradient id="aisGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#10b981"/>
-                <stop offset="100%" stop-color="#047857"/>
+                <stop offset="0%" stop-color="#6366f1"/>
+                <stop offset="55%" stop-color="#a855f7"/>
+                <stop offset="100%" stop-color="#ec4899"/>
               </linearGradient>
             </defs>
           </svg>
@@ -448,7 +449,7 @@
     }, 300);
   }
 
-  const AIS_LOGO_SVG = '<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="aisLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#60a5fa"/><stop offset="100%" stop-color="#1d4ed8"/></linearGradient></defs><path d="M50 12 L86 78 L14 78 Z" fill="url(#aisLogoGrad)" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/><path d="M50 34 L70 70 L30 70 Z" fill="rgba(255,255,255,0.85)"/><circle cx="50" cy="58" r="5" fill="#1d4ed8"/></svg>';
+  const AIS_LOGO_SVG = '<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="aisLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#6366f1"/><stop offset="55%" stop-color="#a855f7"/><stop offset="100%" stop-color="#ec4899"/></linearGradient></defs><path d="M50 12 L86 78 L14 78 Z" fill="url(#aisLogoGrad)" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/><path d="M50 34 L70 70 L30 70 Z" fill="rgba(255,255,255,0.9)"/><circle cx="50" cy="58" r="5" fill="#a855f7"/></svg>';
 
   let aisVoiceState = 'idle'; // idle | listening | ai_speaking | processing
   let aisTranscriptOpen = false;
@@ -493,7 +494,7 @@
           <div style="margin-top:8px;width:100%;">
             <div id="ais-text-toggle" style="text-align:center;font-size:11.5px;color:rgba(255,255,255,0.7);cursor:pointer;text-decoration:underline;margin-bottom:6px;" onclick="aisToggleTextInput()">Yoki matn orqali yozing тМи</div>
             <div id="ais-text-row" style="display:none;gap:8px;">
-              <input type="text" class="ais-text-field" id="ais-text" style="background:rgba(255,255,255,0.95);color:#1e3a8a;border-color:rgba(255,255,255,0.3);" placeholder="Javobingizni yozing..." onkeydown="if(event.key==='Enter') aisSendText()">
+              <input type="text" class="ais-text-field" id="ais-text" style="background:rgba(255,255,255,0.95);color:#312e81;border-color:rgba(255,255,255,0.3);" placeholder="Javobingizni yozing..." onkeydown="if(event.key==='Enter') aisSendText()">
               <button class="ais-send-btn" onclick="aisSendText()">тЮд</button>
             </div>
           </div>
@@ -939,7 +940,7 @@
       // Natija ekrani тАФ ogohlantirish
       document.getElementById('aispeaking-content').innerHTML = `
         <div class="ais-wrap">
-          <div class="ais-res-card" style="background:linear-gradient(135deg,#ef4444,#dc2626);">
+          <div class="ais-res-card" style="background:linear-gradient(135deg,#be185d,#e11d48,#ec4899);">
             <div class="ais-res-icon">тЪая╕П</div>
             <div class="ais-res-title">Suhbat yetarli emas</div>
             <div class="ais-res-sub" style="opacity:.92;">AI Speaking baholanishi uchun kamida 3 ta savol-javob va 20+ so'z kerak</div>
@@ -1029,7 +1030,7 @@
           <div class="ais-stat-item"><div class="ais-stat-num">${avgW}</div><div class="ais-stat-label">O'RT. SO'Z/SUHBAT</div></div>
         </div>
         <div class="ais-feedback">
-          <strong>ЁЯУК Baholash:</strong> Taxminiy Band <strong style="color:#10b981;">${band}</strong> (${pct}%)
+          <strong>ЁЯУК Baholash:</strong> Taxminiy Band <strong style="color:#a855f7;">${band}</strong> (${pct}%)
           <ul>
             <li><strong>Yaxshi javoblar:</strong> ${goodCount} ta</li>
             <li><strong>Qisqa javoblar:</strong> ${shortCount} ta</li>
