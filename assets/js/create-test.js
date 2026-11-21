@@ -185,13 +185,15 @@
       if(tEl) tEl.focus();
       return;
     }
-    const link = 'https://englify.uz/test/' + Math.random().toString(36).slice(2,8);
+    const link = crtMakeLink();
     const created = {
       title: title,
       desc: (testDraft.desc || '').trim(),
       time: testDraft.time,
       count: testDraft.questions.length,
+      questions: JSON.parse(JSON.stringify(testDraft.questions)),
       link: link,
+      code: crtCodeFromLink(link),
       date: new Date().toLocaleDateString('uz-UZ')
     };
     recentTests.unshift(created);
@@ -230,12 +232,15 @@
     const descUsed = (testDraft.desc || '').trim();
     const created = [];
     for(let i = 1; i <= 15; i++){
+      const link = crtMakeLink();
       created.push({
         title: name + ' #' + i,
         desc: descUsed,
         time: timeUsed,
         count: 0,
-        link: 'https://englify.uz/test/' + Math.random().toString(36).slice(2,8),
+        link: link,
+        code: crtCodeFromLink(link),
+        questions: [],
         date: new Date().toLocaleDateString('uz-UZ'),
         pack: name
       });
@@ -296,5 +301,147 @@
     recentTests.splice(idx, 1);
     crtSaveRecent();
     renderRecent();
+  }
+
+  /* ============================================================
+     ULASTARILADIGAN TEST HAVOLASI
+     https://englify.alimardonovi.uz/test/XXXXXX
+     ============================================================ */
+  const CRT_SHARE_DOMAIN = 'https://englify.alimardonovi.uz/test/';
+
+  function crtMakeLink(){
+    return CRT_SHARE_DOMAIN + Math.random().toString(36).slice(2,8);
+  }
+
+  function crtCodeFromLink(link){
+    return String(link || '').split('/').pop().toUpperCase();
+  }
+
+  // Sahifa yuklanganda /test/XXXXXX bo'lsa — testni ochamiz
+  function crtOpenFromLocation(){
+    let code = '';
+    try {
+      const m = String(location.pathname || '').match(/\/test\/([A-Za-z0-9_-]+)/);
+      if(m) code = m[1].toUpperCase();
+    } catch(e){}
+    if(!code){
+      try {
+        const q = new URLSearchParams(location.search).get('test');
+        if(q) code = String(q).toUpperCase();
+      } catch(e){}
+    }
+    if(!code) return false;
+    const found = recentTests.find(function(t){ return t.code === code || crtCodeFromLink(t.link) === code; });
+    // Test havolasi ochiq — login talab qilmaymiz, dashboard'ni to'g'ridan ko'rsatamiz
+    const dash = document.getElementById('view-dashboard');
+    if(dash) dash.style.display = 'block';
+    const login = document.getElementById('view-login');
+    if(login) login.style.display = 'none';
+    const reg = document.getElementById('view-register');
+    if(reg) reg.style.display = 'none';
+    document.body.classList.add('dash-mode');
+
+    if(!found){
+      switchTab('home');
+      alert('Bu test topilmadi.\n\nTest faqat yaratilgan brauzer/qurilmada saqlanadi. Testni yaratgan qurilmada oching.');
+      return true;
+    }
+    crtStartTest(found);
+    return true;
+  }
+
+  // Testni yechish ekrani
+  function crtStartTest(test){
+    if(!test) return;
+    const qs = Array.isArray(test.questions) ? test.questions : [];
+    if(!qs.length){
+      alert('Bu testda savollar yo‘q.');
+      return;
+    }
+    const secPerQ = Number(test.time) || 10;
+    const st = { test: test, qs: qs, i: 0, answers: [], left: secPerQ * qs.length, timer: null };
+
+    const draw = function(){
+      const panel = document.getElementById('create');
+      if(!panel) return;
+      panel.classList.add('active');
+      document.querySelectorAll('.panel').forEach(function(p){ if(p !== panel) p.classList.remove('active'); });
+      const pt = document.getElementById('page-title');
+      if(pt) pt.textContent = test.title || 'Test';
+
+      const q = st.qs[st.i];
+      const opts = (q.options || []).map(function(o, i){
+        return '<button type="button" class="crt-answer" data-i="' + i + '" onclick="crtAnswer(' + i + ')">'
+          + '<b>' + 'ABCD'[i] + '</b><span>' + escapeHtml(o) + '</span></button>';
+      }).join('');
+      const mm = String(Math.floor(st.left / 60)).padStart(2, '0');
+      const ss = String(st.left % 60).padStart(2, '0');
+
+      const area = document.getElementById('crt-form-area');
+      if(!area) return;
+      area.innerHTML = '<div class="crt-card">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'
+        + '<div><h3 style="margin:0;font-size:19px;">' + escapeHtml(test.title) + '</h3>'
+        + '<div class="crt-hint" style="margin-top:4px;">Savol ' + (st.i + 1) + ' / ' + st.qs.length + '</div></div>'
+        + '<div style="font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;" id="crt-timer">' + mm + ':' + ss + '</div>'
+        + '</div>'
+        + '<div class="crt-progress" style="height:6px;background:var(--field);border-radius:100px;margin-bottom:18px;overflow:hidden;">'
+        + '<div style="height:100%;width:' + Math.round((st.i / st.qs.length) * 100) + '%;background:linear-gradient(90deg,#6366f1,#a855f7);transition:width .25s;"></div></div>'
+        + '<div style="font-size:17px;font-weight:700;line-height:1.6;margin-bottom:18px;">' + escapeHtml(q.text) + '</div>'
+        + '<div class="crt-answers">' + opts + '</div>'
+        + '</div>';
+    };
+
+    window.crtAnswer = function(i){
+      st.answers[st.i] = i;
+      st.i++;
+      if(st.i >= st.qs.length){ clearInterval(st.timer); crtFinishTest(st); return; }
+      draw();
+    };
+
+    if(st.timer) clearInterval(st.timer);
+    st.timer = setInterval(function(){
+      st.left--;
+      const el = document.getElementById('crt-timer');
+      if(el){
+        const mm = String(Math.floor(Math.max(0, st.left) / 60)).padStart(2, '0');
+        const ss = String(Math.max(0, st.left) % 60).padStart(2, '0');
+        el.textContent = mm + ':' + ss;
+      }
+      if(st.left <= 0){
+        clearInterval(st.timer);
+        crtFinishTest(st);
+      }
+    }, 1000);
+
+    draw();
+  }
+
+  function crtFinishTest(st){
+    let correct = 0;
+    st.qs.forEach(function(q, i){ if(st.answers[i] === Number(q.correct)) correct++; });
+    const pct = Math.round(correct / st.qs.length * 100);
+    const area = document.getElementById('crt-form-area');
+    if(area){
+      area.innerHTML = '<div class="crt-card" style="text-align:center;">'
+        + '<div style="font-size:52px;margin-bottom:8px;">' + (pct >= 70 ? '🎉' : '📘') + '</div>'
+        + '<h3>Test tugadi!</h3>'
+        + '<div style="font-size:44px;font-weight:800;font-family:Fraunces,serif;background:linear-gradient(135deg,#6366f1,#a855f7);-webkit-background-clip:text;background-clip:text;color:transparent;margin:12px 0;">' + pct + '%</div>'
+        + '<p class="crt-hint">To‘g‘ri javoblar: <b>' + correct + '</b> / ' + st.qs.length + '</p>'
+        + '<button class="crt-add-btn" style="margin-top:14px;" onclick="crtStartTest(window.crtLastTest)">Qayta ishlash</button>'
+        + '<button class="crt-cancel-q" style="margin-top:10px;" onclick="switchTab(\'home\')">Asosiyga qaytish</button>'
+        + '</div>';
+    }
+    window.crtLastTest = st.test;
+    // Natijani saqlaymiz
+    try {
+      if(!testProgress.custom) testProgress.custom = { completed: false, date: '' };
+      testProgress.custom.completed = true;
+      testProgress.custom.pct = pct;
+      testProgress.custom.date = new Date().toLocaleDateString('uz-UZ');
+      if(typeof saveTestProgress === 'function') saveTestProgress();
+      if(typeof renderRecent === 'function') renderRecent();
+      if(typeof updateResultsDisplay === 'function') updateResultsDisplay();
+    } catch(e){}
   }
 

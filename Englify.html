@@ -818,6 +818,10 @@
   <script>
     (function(){
       function boot(){
+        // Ulastarilgan test havolasi (/test/XXXXXX) — avval shu tekshiriladi
+        try {
+          if(typeof crtOpenFromLocation === 'function' && crtOpenFromLocation()) return;
+        } catch(e){}
         try {
           if(typeof getSession === 'function' && getSession()) showView('dashboard');
           else showView('login');

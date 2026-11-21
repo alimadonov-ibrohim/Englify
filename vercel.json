@@ -1,7 +1,8 @@
 {
   "version": 2,
   "rewrites": [
-    { "source": "/", "destination": "/Englify.html" }
+    { "source": "/", "destination": "/Englify.html" },
+    { "source": "/test/:id", "destination": "/Englify.html" }
   ],
   "headers": [
     {
